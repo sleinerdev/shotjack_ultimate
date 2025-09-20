@@ -1,0 +1,5 @@
+# Cette application est optimisée pour Railway, pas Vercel
+# WebSocket nécessite un serveur persistant
+
+*
+!README.md

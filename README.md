@@ -2,17 +2,27 @@
 
 Le meilleur du blackjack à gorgées ! Un jeu de blackjack multijoueur en temps réel avec système de boisson.
 
-## 🚀 Déploiement Railway
+## 🚀 Architecture de déploiement
 
-### 1. Configuration automatique
-Railway détecte automatiquement le `Dockerfile` et build l'application.
+Cette application utilise une architecture séparée :
 
-### 2. Variables d'environnement à configurer
-Dans Railway, ajoutez cette variable :
-- `VITE_WS_URL` = `wss://votre-app.railway.app` (remplacez par votre URL Railway)
+### 🔧 **Backend (Railway)**
+- **URL** : `wss://shotjack-production.up.railway.app`
+- **Rôle** : WebSocket serveur + API
+- **Configuration** : Dockerfile + variables d'environnement Railway
+- **Port** : Variable `PORT` configurée automatiquement
 
-### 3. Port
-Railway configure automatiquement le port via la variable `PORT`.
+### 🎨 **Frontend (Vercel)**
+- **Rôle** : Interface React + connexion WebSocket au backend
+- **Configuration** : `vercel.json` avec `VITE_WS_URL`
+- **Build** : `cd frontend && npm run build`
+
+### ⚙️ **Variables d'environnement**
+**Vercel** (frontend) :
+- `VITE_WS_URL` = `wss://shotjack-production.up.railway.app`
+
+**Railway** (backend) :
+- `PORT` = (configuré automatiquement)
 
 ## 🎮 Fonctionnalités
 
