@@ -1,10 +1,45 @@
 import { WebSocketServer } from "ws";
 import { randomUUID } from "crypto";
+import { createServer } from "http";
+import { readFileSync, existsSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
 /* ===== Config serveur ===== */
 const PORT = Number(process.env.PORT || 8080);
-const wss = new WebSocketServer({ port: PORT });
-console.log("WS listening on", PORT);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const distPath = join(__dirname, "../frontend/dist");
+
+// Serveur HTTP pour les fichiers statiques
+const server = createServer((req, res) => {
+  const url = req.url === "/" ? "/index.html" : req.url;
+  const filePath = join(distPath, url);
+  
+  if (existsSync(filePath)) {
+    const ext = filePath.split('.').pop();
+    const contentTypes = {
+      'html': 'text/html',
+      'js': 'application/javascript',
+      'css': 'text/css',
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'gif': 'image/gif',
+      'svg': 'image/svg+xml'
+    };
+    
+    res.setHeader('Content-Type', contentTypes[ext] || 'text/plain');
+    res.end(readFileSync(filePath));
+  } else {
+    // SPA fallback
+    res.setHeader('Content-Type', 'text/html');
+    res.end(readFileSync(join(distPath, 'index.html')));
+  }
+});
+
+const wss = new WebSocketServer({ server });
+server.listen(PORT, () => {
+  console.log(`🚀 ShotJack Ultimate Server listening on ${PORT}`);
+});
 
 /* ===== Cartes & utils ===== */
 const RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];

@@ -83,19 +83,6 @@ export function RulesModal({ onClose }: RulesModalProps) {
     return () => clearInterval(interval);
   }, [isAutoScrolling]);
 
-  const handlePrevious = () => {
-    setIsAutoScrolling(false);
-    setCurrentPage(prev => (prev - 1 + RULES_PAGES.length) % RULES_PAGES.length);
-  };
-
-  const handleNext = () => {
-    setIsAutoScrolling(false);
-    setCurrentPage(prev => (prev + 1) % RULES_PAGES.length);
-  };
-
-  const toggleAutoScroll = () => {
-    setIsAutoScrolling(!isAutoScrolling);
-  };
 
   const currentRule = RULES_PAGES[currentPage];
 

@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import type { Snapshot, PlayerOnline, ServerModal, FlashState, PlayerSession } from "../types";
+import { useState, useMemo, useRef } from "react";
+import type { Snapshot, ServerModal, FlashState, PlayerSession } from "../types";
 import { SESSION_KEY } from "../constants";
 
 export function useGameState() {
@@ -18,7 +18,7 @@ export function useGameState() {
   const processedRef = useRef(0);
   const leftRef = useRef(false);
 
-  const persistSession = (session: { matchId: string; token: string; name: string }) => {
+  const persistSession = (session: { matchId: string; token: string; name: string; playerId: string }) => {
     try {
       localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     } catch (error) {

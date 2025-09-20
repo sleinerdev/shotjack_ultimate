@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useWebSocket, waitForOpen } from "./hooks/useWebSocket";
 import { useGameState } from "./hooks/useGameState";
 import { Home } from "./components/Home";
@@ -18,7 +18,7 @@ import { RulesModal } from "./components/RulesModal";
 import { getRandomName } from "./utils/names";
 import { safeTotals, isBlackjack, canSplit, canDouble } from "./utils/game";
 import { WS_URL, TIMEOUTS } from "./constants";
-import type { Snapshot, PlayerOnline, ServerModal, FlashState, PlayerSession } from "./types";
+import type { ServerModal } from "./types";
 
 export default function App() {
   // Charger la session initiale
@@ -63,7 +63,6 @@ export default function App() {
     myTurn,
     myActiveHand,
     isHost,
-    onModalConfirm
   } = useGameState();
 
   const { open, send, messages, wsRef, clearQueue } = useWebSocket(

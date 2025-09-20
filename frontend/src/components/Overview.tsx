@@ -1,6 +1,6 @@
 import type { Snapshot, CardT } from '../types';
 import { SLOT_COLORS } from '../constants';
-import { safeTotals, faceVal } from '../utils/game';
+import { safeTotals } from '../utils/game';
 
 interface OverviewProps {
   show: boolean;

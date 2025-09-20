@@ -53,6 +53,8 @@ export type ServerModal = {
 export type PlayerSession = {
   playerId: string;
   matchId: string;
+  token: string;
+  name: string;
 } | null;
 
 // État du flash
