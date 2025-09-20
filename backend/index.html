@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Shotjack</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{color-scheme:dark light}
+    body{font-family:ui-sans-serif,system-ui,Arial;margin:0;background:#0b1220;color:#e5e7eb}
+    .wrap{max-width:920px;margin:24px auto;padding:0 16px}
+    .card{background:#0f162b;border:1px solid #1f2a44;border-radius:14px;padding:16px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    input,button{padding:10px 12px;border-radius:10px;border:1px solid #2a3a5a;background:#0d1324;color:#e5e7eb}
+    button{background:#334155;cursor:pointer}
+    button.primary{background:linear-gradient(#fb7185,#be185d);border:none}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .pill{padding:3px 8px;border-radius:999px;background:#111827;border:1px solid #374151;font-size:12px}
+    #log{height:180px;overflow:auto;background:#0a0f1f;border:1px solid #1f2937;border-radius:12px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+    .col{display:grid;gap:8px}
+    .zone{background:#0c1a24;border:1px solid #153042;border-radius:12px;padding:12px}
+    .cards{display:flex;gap:6px;flex-wrap:wrap}
+    .cardMini{width:42px;height:58px;border-radius:8px;background:#fff;color:#000;display:flex;align-items:flex-start;justify-content:flex-start;padding:4px 6px;font-weight:800;border:1px solid #00000022}
+    .muted{opacity:.6}
+    .modal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);backdrop-filter:blur(4px)}
+    .modal > div{background:#0C1020;border:1px solid #ffffff18;border-radius:18px;padding:18px;width:min(92vw,520px);text-align:center}
+    .h1{font-size:20px;font-weight:800;margin:0 0 8px}
+    .h2{font-size:16px;font-weight:700;margin:8px 0}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 style="margin:0 0 12px">Shotjack</h1>
+    <div class="card" style="margin-bottom:12px">
+      <div class="row" style="margin-bottom:10px">
+        <label>WS URL</label>
+        <input id="url" size="48" value="wss://shotjack-production.up.railway.app" />
+        <button id="btnConnect" class="primary">Connexion</button>
+        <span id="status" class="pill">déconnecté</span>
+      </div>
+      <div class="row" style="margin-bottom:8px">
+        <label>Pseudo</label><input id="name" value="Niels" />
+        <label>ID partie</label><input id="matchId" placeholder="ex: abc123" />
+        <button id="btnCreate">Créer</button>
+        <button id="btnJoin">Rejoindre</button>
+        <button id="btnStart" class="primary">Démarrer</button>
+      </div>
+      <div class="row">
+        <button id="btnHit">Hit</button>
+        <button id="btnStand">Stand</button>
+        <button id="btnDouble">Double</button>
+        <button id="btnSplit">Split</button>
+        <button id="btnDrink">J’ai bu</button>
+        <button id="btnDistribute">C’est bon</button>
+      </div>
+    </div>
+
+    <div class="col" style="grid-template-columns:1fr 1fr">
+      <div class="zone">
+        <div class="h1">Table</div>
+        <div>Phase: <span id="phase">—</span> • Manche: <span id="round">—</span></div>
+        <div style="margin-top:8px">
+          <div class="h2">Croupier <span id="dealerTotal" class="pill muted">—</span></div>
+          <div id="dealerCards" class="cards"></div>
+        </div>
+      </div>
+      <div class="zone">
+        <div class="h1">Joueurs</div>
+        <div id="players"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="h1">Console</div>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <div id="modal" class="modal" style="display:none">
+    <div>
+      <div id="m_head" class="h1"></div>
+      <div id="m_pref" class="h2" style="opacity:.9"></div>
+      <div id="m_details" style="margin:6px 0 10px"></div>
+      <div id="m_sum" style="font-size:28px;font-weight:900;margin:8px 0"></div>
+      <div id="m_dist" style="font-size:22px;font-weight:800;margin:8px 0"></div>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <button id="m_btn" class="primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // config
+    const $ = id => document.getElementById(id);
+    const log = (t,o) => { const d=document.createElement('div'); d.textContent = new Date().toLocaleTimeString()+" "+t+" "+(typeof o==='string'?o:JSON.stringify(o)); $('log').appendChild(d); $('log').scrollTop = $('log').scrollHeight; };
+    let ws=null, openQueue=[];
+    let lastModal=null;
+
+    // connect
+    $('btnConnect').onclick = () => {
+      const url = $('url').value.trim();
+      if (!url) return alert('URL vide');
+      if (ws && (ws.readyState===0||ws.readyState===1)) return log('info','déjà connecté ou en cours');
+      ws = new WebSocket(url);
+      $('status').textContent='connexion…';
+      ws.onopen = () => { $('status').textContent='connecté'; log('open', url); openQueue.forEach(m=>ws.send(m)); openQueue=[]; };
+      ws.onmessage = e => handle(JSON.parse(e.data));
+      ws.onclose = () => { $('status').textContent='fermé'; log('close','socket fermé'); };
+      ws.onerror = (e) => { $('status').textContent='erreur'; console.error(e); };
+    };
+
+    function send(obj){
+      const txt = JSON.stringify(obj);
+      if (!ws) return log('warn','ws null');
+      if (ws.readyState===1) ws.send(txt);
+      else if (ws.readyState===0) { openQueue.push(txt); log('queue', obj); }
+      else log('warn','socket non ouverte');
+      log('ENVOYE', obj);
+    }
+
+    // buttons
+    $('btnCreate').onclick = () => send({type:'create_match', name: $('name').value||'Joueur'});
+    $('btnJoin').onclick   = () => { const id=$('matchId').value.trim(); if(!id) return alert('ID manquant'); send({type:'join_match', matchId:id, name:$('name').value||'Invité'}); };
+    $('btnStart').onclick  = () => send({type:'start_round'});
+    $('btnHit').onclick    = () => send({type:'action', action:'hit'});
+    $('btnStand').onclick  = () => send({type:'action', action:'stand'});
+    $('btnDouble').onclick = () => send({type:'action', action:'double'});
+    $('btnSplit').onclick  = () => send({type:'action', action:'split'});
+    $('btnDrink').onclick  = () => send({type:'drink_done'});
+    $('btnDistribute').onclick = () => send({type:'distribute_done'});
+
+    // render helpers
+    function cardView(c){ const d=document.createElement('div'); d.className='cardMini'; d.textContent = c.rank + c.suit; return d; }
+    function renderState(s){
+      $('phase').textContent = s.phase;
+      $('round').textContent = s.round;
+      // dealer
+      const dc = $('dealerCards'); dc.innerHTML='';
+      const shown = s.dealer.hidden ? [s.dealer.cards[0]].filter(Boolean) : s.dealer.cards;
+      shown.forEach(c=> dc.appendChild(cardView(c)));
+      $('dealerTotal').textContent = s.dealer.hidden ? '—' : totalText(s.dealer.cards);
+      // players
+      const box = $('players'); box.innerHTML='';
+      s.players.forEach(p=>{
+        const wrap = document.createElement('div'); wrap.style.marginBottom='10px';
+        const h = document.createElement('div'); h.innerHTML = `<b>${p.name}</b> <span class="pill">total ${p.totalDrank}</span>`;
+        wrap.appendChild(h);
+        p.hands.forEach((hand, i)=>{
+          const row = document.createElement('div'); row.className='cards'; row.style.marginTop='6px';
+          hand.cards.forEach(c=> row.appendChild(cardView(c)));
+          const sum = document.createElement('div'); sum.className='pill'; sum.style.marginLeft='6px'; sum.textContent = totalText(hand.cards);
+          wrap.appendChild(row); wrap.appendChild(sum);
+        });
+        box.appendChild(wrap);
+      });
+    }
+    function totalText(cards){
+      // calc best + alternates <=21
+      function faceVal(c){ if(c.rank==="A") return 11; if(["K","Q","J","10"].includes(c.rank)) return 10; return parseInt(c.rank,10); }
+      let t=0,a=0; for(const c of cards){ if(c.rank==="A"){a++; t+=11;} else t+=faceVal(c); }
+      const list=[t]; while(a>0){ t-=10; a--; list.push(t); }
+      const uniq=[...new Set(list)].sort((x,y)=>x-y);
+      const ok=uniq.filter(x=>x<=21);
+      return ok.length? ok.join(',') : uniq[uniq.length-1].toString();
+    }
+
+    // modal
+    function showModal(m){
+      lastModal = m;
+      $('m_head').textContent = m.headline || '';
+      $('m_head').style.color = m.headlineColor || '';
+      $('m_pref').textContent = m.preface || '';
+      // details
+      const d = $('m_details'); d.innerHTML='';
+      (m.details||[]).forEach(it=>{
+        const el=document.createElement('div');
+        const item = typeof it==='string'? {text:it} : it;
+        el.textContent=item.text;
+        if(item.bold) el.style.fontWeight='800';
+        if(item.color) el.style.color=item.color;
+        d.appendChild(el);
+      });
+      $('m_sum').textContent = m.summary || '';
+      $('m_dist').textContent = m.distribute>0 ? `Tu distribues ${m.distribute} ${m.distribute===1?'gorgée':'gorgées'}` : '';
+      $('m_btn').textContent = m.confirmLabel || (m.summary ? "J’ai bu" : "C’est bon");
+      $('modal').style.display = 'grid';
+    }
+    $('m_btn').onclick = () => {
+      if (!lastModal) return;
+      if (lastModal.summary) send({type:'drink_done'});
+      if (lastModal.distribute>0) send({type:'distribute_done'});
+      $('modal').style.display='none';
+      lastModal=null;
+    };
+
+    // dispatcher
+    function handle(msg){
+      log('RECU', msg);
+      if (msg.type==='state' && msg.snapshot) renderState(msg.snapshot);
+      if (msg.type==='modal') showModal(msg);
+      if (msg.type==='toast'){ /* optionnel: flash visuel */ }
+      if (msg.type==='created'){ $('matchId').value = msg.matchId; }
+      if (msg.type==='joined'){ $('matchId').value = msg.matchId; }
+      if (msg.type==='error'){ alert(msg.code || 'Erreur'); }
+    }
+
+    // auto-connect
+    (function(){ $('btnConnect').click(); })();
+  </script>
+</body>
+</html>
