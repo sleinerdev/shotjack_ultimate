@@ -25,9 +25,9 @@ VITE_WS_URL=wss://shotjack-production.up.railway.app
 ```
 
 ### Configuration Vercel
-- **Build Command** : `cd frontend && npm run build`
+- **Build Command** : `npm run build`
 - **Output Directory** : `frontend/dist`
-- **Install Command** : `cd frontend && npm install`
+- **Install Command** : `npm install`
 
 ### Déploiement automatique
 1. **Push sur GitHub** : Vercel détecte automatiquement les changements
