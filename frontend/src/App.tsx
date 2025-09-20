@@ -167,19 +167,22 @@ export default function App() {
 
       if (msg.type === "created") {
         leftRef.current = false; // Reset après confirmation serveur
-        setMe({ playerId: msg.playerId, matchId: msg.matchId });
-        persistSession({ matchId: msg.matchId, token: msg.token, name });
+        const session = { playerId: msg.playerId, matchId: msg.matchId, token: msg.token, name };
+        setMe(session);
+        persistSession(session);
       }
 
       if (msg.type === "joined") {
         leftRef.current = false; // Reset après confirmation serveur
-        setMe({ playerId: msg.playerId, matchId: msg.matchId });
-        persistSession({ matchId: msg.matchId, token: msg.token, name });
+        const session = { playerId: msg.playerId, matchId: msg.matchId, token: msg.token, name };
+        setMe(session);
+        persistSession(session);
       }
 
       if (msg.type === "rejoined") {
         leftRef.current = false; // Reset après confirmation serveur
-        setMe({ playerId: msg.playerId, matchId: msg.matchId });
+        const session = { playerId: msg.playerId, matchId: msg.matchId, token: msg.token, name };
+        setMe(session);
         setScreen("online");
       }
 

@@ -1,48 +1,54 @@
-# ShotJack Ultimate
+# ShotJack Ultimate 🃏🍻
 
-Le meilleur du blackjack à gorgées ! Combinaison des meilleures fonctionnalités de ShotjackMono et ShotjackV2.
+Le meilleur du blackjack à gorgées ! Un jeu de blackjack multijoueur en temps réel avec système de boisson.
 
-## Fonctionnalités
+## 🚀 Déploiement Railway
 
-### De ShotjackMono
-- ✅ Interface overview complète avec vue d'ensemble des joueurs
-- ✅ Interface de gorgées (distribué vs bu) dans l'UI
-- ✅ Landing page avec UI propre
-- ✅ Fonctionnalité retour à l'accueil et recréation de partie
-- ✅ Pool de pseudos aléatoires
+### 1. Configuration automatique
+Railway détecte automatiquement le `Dockerfile` et build l'application.
 
-### De ShotjackV2  
-- ✅ Système de passage entre parties (rounds) fluide
-- ✅ Contrôles complets du blackjack (hit, stand, split, double)
-- ✅ Architecture moderne avec GameProvider
+### 2. Variables d'environnement à configurer
+Dans Railway, ajoutez cette variable :
+- `VITE_WS_URL` = `wss://votre-app.railway.app` (remplacez par votre URL Railway)
 
-## Installation
+### 3. Port
+Railway configure automatiquement le port via la variable `PORT`.
+
+## 🎮 Fonctionnalités
+
+- **Blackjack multijoueur** en temps réel
+- **Système de gorgées** : distribuer ou boire selon les résultats
+- **Codes de partie** format `12AB` (2 chiffres + 2 lettres)
+- **Interface responsive** avec Tailwind CSS
+- **Reconnexion automatique** en cas de déconnexion
+- **Règles intégrées** avec navigation automatique
+
+## 🛠 Développement local
 
 ```bash
+# Installer les dépendances
 npm run install:all
-```
 
-## Développement
-
-```bash
+# Lancer en mode développement
 npm run dev
-```
 
-## Production
-
-```bash
+# Build pour production
 npm run build
+
+# Démarrer le serveur
 npm start
 ```
 
-## Structure
+## 📱 Utilisation
 
-```
-shotjack_ultimate/
-├── backend/           # Serveur WebSocket
-│   └── server/        # Code serveur principal
-├── frontend/          # Interface React avec Tailwind CSS
-├── package.json       # Scripts pour lancer le projet complet
-└── README.md          # Cette documentation
-```
+1. **Créer une partie** : génère un code à 4 caractères
+2. **Rejoindre** : entrer le code de partie
+3. **Jouer** : utiliser les boutons Tirer, Arrêter, Doubler, Diviser
+4. **Boire/Distribuer** selon les résultats du blackjack
 
+## 🎯 Technologies
+
+- **Frontend** : React + TypeScript + Tailwind CSS
+- **Backend** : Node.js + WebSocket
+- **Build** : Vite + Docker multi-stage
+- **Déploiement** : Railway
