@@ -69,21 +69,23 @@ export default function App() {
     onModalConfirm
   } = useGameState();
 
-  const { open, send, messages, wsRef } = useWebSocket(
+  const { open, send, messages, wsRef, close: closeSocket } = useWebSocket(
     screen !== "home" ? WS_URL : "ws://invalid"
   );
 
   const flashPersistRef = useRef(false);
   const autoBJRef = useRef(false);
   const overviewBtnRef = useRef<HTMLButtonElement>(null);
+  const awaitingOthersRef = useRef(awaitingOthers);
   const [showRules, setShowRules] = useState(false);
+  const [overviewCooldownUntil, setOverviewCooldownUntil] = useState<number>(0);
+
+  useEffect(() => {
+    awaitingOthersRef.current = awaitingOthers;
+  }, [awaitingOthers]);
 
   const hardCloseSocket = () => {
-    try {
-      wsRef.current?.close();
-    } catch (error) {
-      console.warn('Error closing socket:', error);
-    }
+    closeSocket();
   };
 
   const resetToHome = () => {
@@ -97,6 +99,7 @@ export default function App() {
     setShowSettings(false);
     setShowOverview(false);
     setModal(null);
+    awaitingOthersRef.current = false;
     setAwaitingOthers(false);
     setSnapshot(null);
     setMe(null);
@@ -170,16 +173,17 @@ export default function App() {
 
       if (msg.type === "created") {
         setMe({ playerId: msg.playerId, matchId: msg.matchId, token: msg.token });
-        persistSession({ matchId: msg.matchId, token: msg.token, name });
+        persistSession({ matchId: msg.matchId, token: msg.token, name, playerId: msg.playerId });
       }
 
       if (msg.type === "joined") {
         setMe({ playerId: msg.playerId, matchId: msg.matchId, token: msg.token });
-        persistSession({ matchId: msg.matchId, token: msg.token, name });
+        persistSession({ matchId: msg.matchId, token: msg.token, name, playerId: msg.playerId });
       }
 
       if (msg.type === "rejoined") {
         setMe({ playerId: msg.playerId, matchId: msg.matchId, token: msg.token });
+        persistSession({ matchId: msg.matchId, token: msg.token, name, playerId: msg.playerId });
         setScreen("online");
       }
 
@@ -200,10 +204,11 @@ export default function App() {
         prevRoundRef.current = round;
         lastStateRoundRef.current = round;
 
-        if (awaitingOthers) {
+        if (awaitingOthersRef.current) {
           const phase = msg.snapshot.phase;
           const advanced = (ackedRoundRef.current !== null && round > ackedRoundRef.current);
           if (advanced || (phase !== "resolve" && phase !== "distribute")) {
+            awaitingOthersRef.current = false;
             setAwaitingOthers(false);
             ackedRoundRef.current = null;
             const hostNow = msg.snapshot.order[0] === (me?.playerId || "");
@@ -216,7 +221,7 @@ export default function App() {
 
       if (msg.type === "modal") {
         const roundNow = lastStateRoundRef.current ?? 0;
-        if (awaitingOthers && ackedRoundRef.current === roundNow) continue;
+        if (awaitingOthersRef.current && ackedRoundRef.current === roundNow) continue;
 
         const modal = msg as ServerModal;
         const headlineColor = (modal.headlineColor || "").toLowerCase();
@@ -241,6 +246,7 @@ export default function App() {
 
         if (!modal.requireConfirm) {
           ackedRoundRef.current = roundNow;
+          awaitingOthersRef.current = true;
           setAwaitingOthers(true);
           setTimeout(() => {
             if (leftRef.current) return;
@@ -286,6 +292,7 @@ export default function App() {
       setFlash(null);
     }
     ackedRoundRef.current = lastStateRoundRef.current ?? null;
+    awaitingOthersRef.current = true;
     setAwaitingOthers(true);
     if ((modal.youDrink || 0) > 0) {
       send({ type: "drink_done" });
@@ -308,7 +315,16 @@ export default function App() {
         distributed={distributed}
         drunk={drunk}
         onSettings={() => setShowSettings(true)} 
-        onOverview={() => setShowOverview(v => !v)} 
+        onOverview={() => {
+          if (overviewCooldownUntil > Date.now()) return;
+          setShowOverview(v => {
+            const next = !v;
+            if (!next) {
+              setOverviewCooldownUntil(Date.now() + 350);
+            }
+            return next;
+          });
+        }}
         overviewOpen={showOverview}
         overviewBtnRef={overviewBtnRef}
       />;
@@ -321,7 +337,7 @@ export default function App() {
           setName={(value) => {
             setName(value);
             const session = loadSession();
-            if (session) {
+            if (session?.playerId) {
               persistSession({ ...session, name: value || "Joueur" });
             }
           }}
@@ -432,13 +448,16 @@ export default function App() {
         )}
       </div>
 
-      <Overview 
-        show={showOverview} 
-        snapshot={snapshot} 
-        onClose={() => setShowOverview(false)}
+      <Overview
+        show={showOverview}
+        snapshot={snapshot}
+        onClose={() => {
+          setShowOverview(false);
+          setOverviewCooldownUntil(Date.now() + 350);
+        }}
         anchorRect={overviewBtnRef.current?.getBoundingClientRect() || null}
       />
-      <WaitingOverlay show={awaitingOthers} />
+      <WaitingOverlay show={awaitingOthers && !!snapshot && snapshot.phase !== "lobby"} />
       <FlashOverlay flash={flash} />
       
       {modal && (
