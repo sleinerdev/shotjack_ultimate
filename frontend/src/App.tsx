@@ -395,13 +395,14 @@ export default function App() {
             <PlayersBand 
               snapshot={snapshot} 
               currentPlayerId={snapshot.turn?.playerId}
+              myPlayerId={me?.playerId}
             />
             
-            {/* Contenu du jeu */}
-            <div className="flex-1 w-full max-w-md mx-auto px-4 py-6 text-white flex flex-col">
-              <div className="flex-1 flex flex-col justify-center space-y-4 sm:space-y-6">
-                {/* Cartes du croupier */}
-                <div className="mx-auto w-full max-w-64 rounded-2xl bg-[#0f2731] p-3 sm:p-4">
+            {/* Contenu du jeu - fixe sans scroll */}
+            <div className="flex-1 w-full max-w-md mx-auto px-4 py-3 text-white flex flex-col overflow-hidden">
+              <div className="flex-1 flex flex-col justify-center space-y-3">
+                {/* Cartes du croupier - réduites */}
+                <div className="mx-auto w-full max-w-56 rounded-xl bg-[#0f2731] p-2.5">
                   <CardsRow 
                     cards={snapshot.dealer.cards} 
                     hideSecond={snapshot.dealer.hidden} 
@@ -413,8 +414,8 @@ export default function App() {
                   tight 
                 />
 
-                {/* Cartes du joueur */}
-                <div className="mx-auto w-full max-w-80 rounded-2xl bg-[#0f2731] p-3 sm:p-4">
+                {/* Cartes du joueur - réduites */}
+                <div className="mx-auto w-full max-w-72 rounded-xl bg-[#0f2731] p-2.5">
                   {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
                 </div>
                 {myActiveHand && (
@@ -422,8 +423,8 @@ export default function App() {
                 )}
               </div>
 
-              {/* Contrôles fixes en bas */}
-              <div className="flex-shrink-0 pb-4">
+              {/* Contrôles fixes en bas avec minimal padding */}
+              <div className="flex-shrink-0 pb-2">
                 <Controls
                   disabled={controlsDisabled}
                   canDouble={canDoubleHand}
