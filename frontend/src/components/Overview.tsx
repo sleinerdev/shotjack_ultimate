@@ -18,11 +18,16 @@ export function Overview({ show, snapshot, onClose, anchorRect }: OverviewProps)
     color: SLOT_COLORS[i % SLOT_COLORS.length]
   })).filter(x => !!x.player);
 
-  const closeStyle: React.CSSProperties = {
+  const closeStyle: React.CSSProperties = anchorRect ? {
+    position: "fixed",
+    left: anchorRect.left + (anchorRect.width - 48) / 2, // Centré sur le bouton (48px = taille de la croix)
+    top: anchorRect.top + (anchorRect.height - 48) / 2,
+    zIndex: 60
+  } : { 
     position: "fixed", 
     right: 16, 
     top: "max(16px, calc(env(safe-area-inset-top) + 8px))",
-    zIndex: 60
+    zIndex: 60 
   };
 
   return (
@@ -50,7 +55,7 @@ export function Overview({ show, snapshot, onClose, anchorRect }: OverviewProps)
         onClick={(e) => e.stopPropagation()}
         onTouchEnd={(e) => e.stopPropagation()}
       >
-        <div className="p-4 pt-safe-top" style={{ paddingTop: "max(5rem, calc(env(safe-area-inset-top) + 1rem))" }}>
+        <div className="p-4 pt-safe-top" style={{ paddingTop: "max(6rem, calc(env(safe-area-inset-top) + 2rem))" }}>
           <div className="grid grid-cols-2 gap-3">
             {players.map(({ player, color }) => (
               <div key={player.id} className="rounded-2xl bg-[#0f2731] p-3">

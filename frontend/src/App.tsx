@@ -187,8 +187,8 @@ export default function App() {
       }
 
       if (msg.type === "state") {
-        setSnapshot(msg.snapshot);
         const round = msg.snapshot.round;
+        const phase = msg.snapshot.phase;
 
         // Reset client quand le round avance
         if (round > (prevRoundRef.current || 0)) {
@@ -203,8 +203,15 @@ export default function App() {
         prevRoundRef.current = round;
         lastStateRoundRef.current = round;
 
+        // Éviter le flash du lobby - ne pas afficher lobby si on est en attente
+        if (phase === "lobby" && awaitingOthers) {
+          // Ne pas mettre à jour le snapshot pour éviter le flash
+          // Le snapshot sera mis à jour quand la phase change
+        } else {
+          setSnapshot(msg.snapshot);
+        }
+
         if (awaitingOthers) {
-          const phase = msg.snapshot.phase;
           const advanced = (ackedRoundRef.current !== null && round > ackedRoundRef.current);
           if (advanced || (phase !== "resolve" && phase !== "distribute")) {
             setAwaitingOthers(false);
@@ -365,7 +372,7 @@ export default function App() {
                 order={snapshot?.order || (me ? [me.playerId] : [])} 
               />
             </div>
-            <div className="flex-shrink-0 px-4 pb-safe-bottom pb-8 pt-5">
+            <div className="flex-shrink-0 px-4 pb-safe-bottom pb-12 pt-5">
               {isHost ? (
                 <button 
                   onClick={startRound} 
@@ -427,7 +434,7 @@ export default function App() {
         onClose={() => setShowOverview(false)}
         anchorRect={overviewBtnRef.current?.getBoundingClientRect() || null}
       />
-      {/* <WaitingOverlay show={awaitingOthers} /> */}
+      <WaitingOverlay show={awaitingOthers} />
       <FlashOverlay flash={flash} />
       
       {modal && (
