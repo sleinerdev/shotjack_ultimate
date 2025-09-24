@@ -276,7 +276,7 @@ export default function App() {
     !myActiveHand || 
     !!modal || 
     isBlackjack(myActiveHand?.cards || []) || 
-    safeTotals(myActiveHand?.cards || []).slice(-1)[0] >= 21;
+    (safeTotals(myActiveHand?.cards || []).every(total => total > 21));
 
   const canDoubleHand = !!myActiveHand && canDouble(myActiveHand.cards, myActiveHand.noHit);
   const canSplitHand = !!myActiveHand && canSplit(myActiveHand.cards);
@@ -318,7 +318,7 @@ export default function App() {
 
   if (screen === "home") {
     return (
-      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col">
+      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col pt-safe-top">
         <Home
           name={name}
           setName={(value) => {
@@ -337,7 +337,7 @@ export default function App() {
 
   if (screen === "created") {
     return (
-      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col">
+      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col pt-safe-top">
         <CreatedScreen
           matchId={me?.matchId || "—"}
           onEnter={() => setScreen("online")}
@@ -350,8 +350,8 @@ export default function App() {
 
   return (
     <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col" style={{ background: "#213743" }}>
-      {/* Header fixe */}
-      <div className="flex-shrink-0">
+      {/* Header fixe avec safe area */}
+      <div className="flex-shrink-0 pt-safe-top">
         {header}
       </div>
 

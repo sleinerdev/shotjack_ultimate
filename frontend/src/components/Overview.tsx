@@ -22,19 +22,34 @@ export function Overview({ show, snapshot, onClose, anchorRect }: OverviewProps)
     position: "fixed",
     left: anchorRect.left,
     top: anchorRect.top + (anchorRect.height - 40) / 2,
-  } : { position: "fixed", left: 12, top: 12 };
+  } : { position: "fixed", left: 12, top: "max(12px, env(safe-area-inset-top))" };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur" onClick={onClose}>
+    <div 
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur" 
+      onClick={onClose}
+      onTouchEnd={onClose}
+    >
       <button
-        onClick={onClose}
-        className="h-10 w-10 rounded-full bg-white/10 grid place-items-center text-white"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        onTouchEnd={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        className="h-10 w-10 rounded-full bg-white/10 grid place-items-center text-white touch-manipulation"
         style={closeStyle}
       >
         ✕
       </button>
-      <div className="max-w-md mx-auto text-white h-full overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 pt-20">
+      <div 
+        className="max-w-md mx-auto text-white h-full overflow-y-auto" 
+        onClick={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+      >
+        <div className="p-4 pt-safe-top" style={{ paddingTop: "max(5rem, calc(env(safe-area-inset-top) + 1rem))" }}>
           <div className="grid grid-cols-2 gap-3">
             {players.map(({ player, color }) => (
               <div key={player.id} className="rounded-2xl bg-[#0f2731] p-3">
