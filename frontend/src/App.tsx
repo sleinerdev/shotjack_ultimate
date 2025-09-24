@@ -318,83 +318,95 @@ export default function App() {
 
   if (screen === "home") {
     return (
-      <Home
-        name={name}
-        setName={(value) => {
-          setName(value);
-          const session = loadSession();
-          if (session) {
-            persistSession({ ...session, name: value || "Joueur" });
-          }
-        }}
-        onCreate={createMatch}
-        onJoin={joinMatch}
-      />
+      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col">
+        <Home
+          name={name}
+          setName={(value) => {
+            setName(value);
+            const session = loadSession();
+            if (session) {
+              persistSession({ ...session, name: value || "Joueur" });
+            }
+          }}
+          onCreate={createMatch}
+          onJoin={joinMatch}
+        />
+      </div>
     );
   }
 
   if (screen === "created") {
     return (
-      <CreatedScreen
-        matchId={me?.matchId || "—"}
-        onEnter={() => setScreen("online")}
-      />
+      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col">
+        <CreatedScreen
+          matchId={me?.matchId || "—"}
+          onEnter={() => setScreen("online")}
+        />
+      </div>
     );
   }
 
   const inLobby = snapshot?.phase === "lobby" || !snapshot;
 
   return (
-    <div className="min-h-screen w-full" style={{ background: "#213743" }}>
-      {header}
+    <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col" style={{ background: "#213743" }}>
+      {/* Header fixe */}
+      <div className="flex-shrink-0">
+        {header}
+      </div>
 
-      {inLobby && (
-        <div className="max-w-md mx-auto">
-          <LobbyList 
-            players={snapshot?.players || []} 
-            order={snapshot?.order || (me ? [me.playerId] : [])} 
-          />
-          <div className="px-4 pb-8 pt-5">
-            {isHost ? (
-              <button 
-                onClick={startRound} 
-                className="w-full rounded-[28px] px-4 py-4 text-xl font-extrabold text-white bg-gradient-to-b from-pink-400 to-pink-600 shadow-[0_12px_0_#8b184e]"
-              >
-                Démarrer la manche
-              </button>
-            ) : (
-              <div className="text-center text-white/70">En attente de l'hôte…</div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {snapshot && snapshot.phase !== "lobby" && (
-        <div className="max-w-md mx-auto px-4 py-6 text-white">
-          <div className="mt-2 space-y-7">
-            {/* Cartes du croupier */}
-            <div className="mx-auto w-64 rounded-2xl bg-[#0f2731] p-4">
-              <CardsRow 
-                cards={snapshot.dealer.cards} 
-                hideSecond={snapshot.dealer.hidden} 
-                size="md" 
+      {/* Contenu principal scrollable */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        {inLobby && (
+          <div className="w-full max-w-md mx-auto h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <LobbyList 
+                players={snapshot?.players || []} 
+                order={snapshot?.order || (me ? [me.playerId] : [])} 
               />
             </div>
-            <TotalPill 
-              values={dealerVisible.length ? safeTotals(dealerVisible) : ["—"]} 
-              tight 
-            />
-
-            {/* Cartes du joueur */}
-            <div className="mx-auto w-80 rounded-2xl bg-[#0f2731] p-4">
-              {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
+            <div className="flex-shrink-0 px-4 pb-safe-bottom pb-8 pt-5">
+              {isHost ? (
+                <button 
+                  onClick={startRound} 
+                  className="w-full rounded-[28px] px-4 py-4 text-xl font-extrabold text-white bg-gradient-to-b from-pink-400 to-pink-600 shadow-[0_12px_0_#8b184e] active:shadow-[0_4px_0_#8b184e] active:translate-y-2 transition-all"
+                >
+                  Démarrer la manche
+                </button>
+              ) : (
+                <div className="text-center text-white/70 py-4">En attente de l'hôte…</div>
+              )}
             </div>
-            {myActiveHand && (
-              <TotalPill values={safeTotals(myActiveHand.cards)} tight />
-            )}
+          </div>
+        )}
 
-            {/* Contrôles */}
-            <div className="mx-auto w-full">
+        {snapshot && snapshot.phase !== "lobby" && (
+          <div className="w-full max-w-md mx-auto px-4 py-6 text-white h-full flex flex-col">
+            <div className="flex-1 flex flex-col justify-center space-y-4 sm:space-y-6">
+              {/* Cartes du croupier */}
+              <div className="mx-auto w-full max-w-64 rounded-2xl bg-[#0f2731] p-3 sm:p-4">
+                <CardsRow 
+                  cards={snapshot.dealer.cards} 
+                  hideSecond={snapshot.dealer.hidden} 
+                  size="md" 
+                />
+              </div>
+              <TotalPill 
+                values={dealerVisible.length ? safeTotals(dealerVisible) : ["—"]} 
+                tight 
+              />
+
+              {/* Cartes du joueur */}
+              <div className="mx-auto w-full max-w-80 rounded-2xl bg-[#0f2731] p-3 sm:p-4">
+                {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
+              </div>
+              {myActiveHand && (
+                <TotalPill values={safeTotals(myActiveHand.cards)} tight />
+              )}
+            </div>
+
+            {/* Contrôles fixes en bas */}
+            <div className="flex-shrink-0 pb-safe-bottom pb-4">
               <Controls
                 disabled={controlsDisabled}
                 canDouble={canDoubleHand}
@@ -406,8 +418,8 @@ export default function App() {
               />
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <Overview 
         show={showOverview} 

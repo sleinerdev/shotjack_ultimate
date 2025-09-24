@@ -3,10 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ShotJack Ultimate</title>
-    <script type="module" crossorigin src="/assets/index-TrVMSWUr.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-B4udhqjP.css">
+    
+    <!-- Mobile viewport optimisé -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ShotJack" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#ec4899" />
+    
+    <!-- Prevent zoom and scroll bounce -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <title>ShotJack</title>
+    
+    <style>
+      /* Empêcher le scroll bounce sur iOS et le zoom */
+      html, body {
+        overflow: hidden;
+        position: fixed;
+        height: 100%;
+        width: 100%;
+        touch-action: manipulation;
+        -webkit-overflow-scrolling: touch;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      #root {
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height pour mobiles */
+        width: 100vw;
+        overflow: hidden;
+        position: relative;
+      }
+      
+      /* Empêcher le pull-to-refresh */
+      body {
+        overscroll-behavior: none;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-DUO1r6cL.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CNb0-hm3.css">
   </head>
   <body>
     <div id="root"></div>

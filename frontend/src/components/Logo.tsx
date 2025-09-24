@@ -12,9 +12,7 @@ export function Logo() {
             <span className="text-white/0">JACK</span>
           </span>
         </h1>
-        <div className="text-lg text-white/60 font-semibold mt-2">Ultimate</div>
       </div>
     </div>
   );
 }
-
