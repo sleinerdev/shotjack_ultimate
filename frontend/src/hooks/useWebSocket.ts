@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import type { WebSocketMessage } from '../types';
 import { WS_CONFIG } from '../constants';
 
+
 type SendOptions = {
   priority?: 'high' | 'normal';
 };
+
 
 type CloseHandler = () => void;
 

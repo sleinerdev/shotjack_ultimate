@@ -69,7 +69,9 @@ export default function App() {
     onModalConfirm
   } = useGameState();
 
+
   const { open, send, messages, close: closeSocket } = useWebSocket(
+
     screen !== "home" ? WS_URL : "ws://invalid"
   );
 
