@@ -25,7 +25,7 @@ html, body {
   overscroll-behavior: none;
 }
 
-/* Styles pour safe area top uniquement */
+/* Styles pour safe area en haut uniquement */
 @supports (padding: max(0px)) {
   .pt-safe-top {
     padding-top: max(1rem, env(safe-area-inset-top));
