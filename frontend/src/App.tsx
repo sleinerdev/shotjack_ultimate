@@ -69,7 +69,7 @@ export default function App() {
     onModalConfirm
   } = useGameState();
 
-  const { open, send, messages, wsRef } = useWebSocket(
+  const { open, send, messages, wsRef, close: closeSocket } = useWebSocket(
     screen !== "home" ? WS_URL : "ws://invalid"
   );
 
@@ -79,11 +79,7 @@ export default function App() {
   const [showRules, setShowRules] = useState(false);
 
   const hardCloseSocket = () => {
-    try {
-      wsRef.current?.close();
-    } catch (error) {
-      console.warn('Error closing socket:', error);
-    }
+    closeSocket();
   };
 
   const resetToHome = () => {
@@ -170,16 +166,17 @@ export default function App() {
 
       if (msg.type === "created") {
         setMe({ playerId: msg.playerId, matchId: msg.matchId, token: msg.token });
-        persistSession({ matchId: msg.matchId, token: msg.token, name });
+        persistSession({ matchId: msg.matchId, token: msg.token, name, playerId: msg.playerId });
       }
 
       if (msg.type === "joined") {
         setMe({ playerId: msg.playerId, matchId: msg.matchId, token: msg.token });
-        persistSession({ matchId: msg.matchId, token: msg.token, name });
+        persistSession({ matchId: msg.matchId, token: msg.token, name, playerId: msg.playerId });
       }
 
       if (msg.type === "rejoined") {
         setMe({ playerId: msg.playerId, matchId: msg.matchId, token: msg.token });
+        persistSession({ matchId: msg.matchId, token: msg.token, name, playerId: msg.playerId });
         setScreen("online");
       }
 
@@ -321,7 +318,7 @@ export default function App() {
           setName={(value) => {
             setName(value);
             const session = loadSession();
-            if (session) {
+            if (session?.playerId) {
               persistSession({ ...session, name: value || "Joueur" });
             }
           }}
