@@ -16,6 +16,7 @@ html, body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #213743; /* Couleur de fond de l'app */
   
   /* Mobile optimizations */
   touch-action: manipulation;

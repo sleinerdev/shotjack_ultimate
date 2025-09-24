@@ -68,6 +68,8 @@ const AUTO_SCROLL_DELAY = 4000; // 4 secondes par page
 export function RulesModal({ onClose }: RulesModalProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   // Défilement automatique
   useEffect(() => {
@@ -82,6 +84,35 @@ export function RulesModal({ onClose }: RulesModalProps) {
 
     return () => clearInterval(interval);
   }, [isAutoScrolling]);
+
+  // Gestion du swipe
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsAutoScrolling(false);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      // Swipe gauche = page suivante
+      setCurrentPage(prev => (prev + 1) % RULES_PAGES.length);
+    } else if (isRightSwipe) {
+      // Swipe droite = page précédente
+      setCurrentPage(prev => (prev - 1 + RULES_PAGES.length) % RULES_PAGES.length);
+    }
+  };
 
 
   const currentRule = RULES_PAGES[currentPage];
@@ -101,7 +132,12 @@ export function RulesModal({ onClose }: RulesModalProps) {
         </div>
 
         {/* Contenu de la page */}
-        <div className="p-4 flex-1 flex flex-col justify-center overflow-hidden">
+        <div 
+          className="p-4 flex-1 flex flex-col justify-center overflow-hidden touch-manipulation"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
           <div className="text-center mb-4">
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="text-2xl">{currentRule.emoji}</div>

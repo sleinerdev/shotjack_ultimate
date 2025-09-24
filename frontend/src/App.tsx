@@ -427,7 +427,7 @@ export default function App() {
         onClose={() => setShowOverview(false)}
         anchorRect={overviewBtnRef.current?.getBoundingClientRect() || null}
       />
-      <WaitingOverlay show={awaitingOthers} />
+      {/* <WaitingOverlay show={awaitingOthers} /> */}
       <FlashOverlay flash={flash} />
       
       {modal && (

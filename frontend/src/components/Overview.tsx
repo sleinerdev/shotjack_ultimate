@@ -18,11 +18,12 @@ export function Overview({ show, snapshot, onClose, anchorRect }: OverviewProps)
     color: SLOT_COLORS[i % SLOT_COLORS.length]
   })).filter(x => !!x.player);
 
-  const closeStyle: React.CSSProperties = anchorRect ? {
-    position: "fixed",
-    left: anchorRect.left,
-    top: anchorRect.top + (anchorRect.height - 40) / 2,
-  } : { position: "fixed", left: 12, top: "max(12px, env(safe-area-inset-top))" };
+  const closeStyle: React.CSSProperties = {
+    position: "fixed", 
+    right: 16, 
+    top: "max(16px, calc(env(safe-area-inset-top) + 8px))",
+    zIndex: 60
+  };
 
   return (
     <div 
@@ -39,7 +40,7 @@ export function Overview({ show, snapshot, onClose, anchorRect }: OverviewProps)
           e.stopPropagation();
           onClose();
         }}
-        className="h-10 w-10 rounded-full bg-white/10 grid place-items-center text-white touch-manipulation"
+        className="h-12 w-12 rounded-full bg-black/50 border-2 border-white/20 grid place-items-center text-white text-xl font-bold touch-manipulation shadow-lg"
         style={closeStyle}
       >
         ✕
@@ -86,9 +87,9 @@ function MiniBand({ cards }: MiniBandProps) {
         return (
           <div
             key={i}
-            className={`w-10 h-14 rounded-md bg-white border border-black/10 overflow-hidden ${i > 0 ? "-ml-6" : ""}`}
+            className={`w-12 h-16 rounded-md bg-white border border-black/10 overflow-hidden ${i > 0 ? "-ml-7" : ""}`}
           >
-            <div className={`p-1 text-[10px] font-black ${isRed ? "text-red-500" : "text-black"}`}>
+            <div className={`p-1.5 text-xs font-black ${isRed ? "text-red-500" : "text-black"}`}>
               {card.rank}{card.suit}
             </div>
           </div>
