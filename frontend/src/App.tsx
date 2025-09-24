@@ -372,7 +372,7 @@ export default function App() {
                 order={snapshot?.order || (me ? [me.playerId] : [])} 
               />
             </div>
-            <div className="flex-shrink-0 px-4 pb-safe-bottom pb-12 pt-5">
+            <div className="flex-shrink-0 px-4 pb-4 pt-5">
               {isHost ? (
                 <button 
                   onClick={startRound} 
@@ -413,7 +413,7 @@ export default function App() {
             </div>
 
             {/* Contrôles fixes en bas */}
-            <div className="flex-shrink-0 pb-safe-bottom pb-4">
+            <div className="flex-shrink-0 pb-4">
               <Controls
                 disabled={controlsDisabled}
                 canDouble={canDoubleHand}

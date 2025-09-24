@@ -55,7 +55,7 @@ export function Overview({ show, snapshot, onClose, anchorRect }: OverviewProps)
         onClick={(e) => e.stopPropagation()}
         onTouchEnd={(e) => e.stopPropagation()}
       >
-        <div className="p-4 pt-safe-top" style={{ paddingTop: "max(6rem, calc(env(safe-area-inset-top) + 2rem))" }}>
+        <div className="p-4 pt-safe-top" style={{ paddingTop: "max(8rem, calc(env(safe-area-inset-top) + 4rem))" }}>
           <div className="grid grid-cols-2 gap-3">
             {players.map(({ player, color }) => (
               <div key={player.id} className="rounded-2xl bg-[#0f2731] p-3">
