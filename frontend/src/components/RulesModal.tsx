@@ -26,7 +26,7 @@ const RULES_PAGES = [
     content: [
       "2 → 10 = leur chiffre",
       "",
-      "🃋 🃝 🂾 = 10",
+      "J, Q, K = 10",
       "",
       "🅰️ = 1 ou 11"
     ]
@@ -140,14 +140,14 @@ export function RulesModal({ onClose }: RulesModalProps) {
         >
           <div className="text-center mb-4">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="text-2xl">{currentRule.emoji}</div>
-              <div className="text-lg font-bold text-pink-400">{currentRule.title}</div>
+              <div className="text-3xl">{currentRule.emoji}</div>
+              <div className="text-xl font-bold text-pink-400">{currentRule.title}</div>
             </div>
           </div>
           
           <div className="space-y-1 text-center overflow-y-auto flex-1">
             {currentRule.content.map((line, index) => (
-              <div key={index} className={line === "" ? "h-1" : "text-white/90 leading-tight text-sm"}>
+              <div key={index} className={line === "" ? "h-2" : "text-white/90 leading-relaxed text-base"}>
                 {line}
               </div>
             ))}

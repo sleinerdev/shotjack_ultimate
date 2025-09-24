@@ -20,7 +20,7 @@ export function Overview({ show, snapshot, onClose, anchorRect }: OverviewProps)
 
   const closeStyle: React.CSSProperties = anchorRect ? {
     position: "fixed",
-    left: anchorRect.left + (anchorRect.width - 48) / 2, // Centré sur le bouton (48px = taille de la croix)
+    left: anchorRect.left + anchorRect.width + 16, // À droite du bouton avec espace
     top: anchorRect.top + (anchorRect.height - 48) / 2,
     zIndex: 60
   } : { 
