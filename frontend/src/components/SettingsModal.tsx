@@ -15,13 +15,13 @@ export function SettingsModal({ onClose, onHome, onRules }: SettingsModalProps) 
         <div className="space-y-3">
           <button 
             onClick={onHome} 
-            className="w-full rounded-2xl bg-white/10 px-4 py-3 hover:bg-white/15 transition-colors"
+            className="w-full rounded-2xl bg-white/10 px-4 py-3 hover:bg-white/15 transition-colors cursor-pointer"
           >
             Retour à l'accueil
           </button>
           <button 
             onClick={onRules} 
-            className="w-full rounded-2xl bg-pink-500/20 border border-pink-400/30 px-4 py-3 hover:bg-pink-500/30 transition-colors"
+            className="w-full rounded-2xl bg-pink-500/20 border border-pink-400/30 px-4 py-3 hover:bg-pink-500/30 transition-colors cursor-pointer"
           >
             Voir les règles
           </button>
