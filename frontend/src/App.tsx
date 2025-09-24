@@ -127,7 +127,10 @@ export default function App() {
     else action();
   };
 
-  const startRound = () => send({ type: "start_round" });
+  const startRound = () => {
+    console.log("startRound clicked!", { isHost, me, snapshot: snapshot?.phase });
+    send({ type: "start_round" });
+  };
   const sendAction = (action: "hit" | "stand" | "double" | "split") => 
     send({ type: "action", action });
 
@@ -362,8 +365,12 @@ export default function App() {
             <div className="flex-shrink-0 px-4 pb-8 pt-5">
               {isHost ? (
                 <button 
-                  onClick={startRound} 
+                  onClick={(e) => {
+                    console.log("Button clicked!", e);
+                    startRound();
+                  }}
                   className="w-full rounded-[28px] px-4 py-4 text-xl font-extrabold text-white bg-gradient-to-b from-pink-400 to-pink-600 shadow-[0_12px_0_#8b184e] active:shadow-[0_4px_0_#8b184e] active:translate-y-2 transition-all cursor-pointer"
+                  style={{ zIndex: 10, position: 'relative' }}
                 >
                   Démarrer la manche
                 </button>
