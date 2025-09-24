@@ -20,13 +20,13 @@ export function Overview({ show, snapshot, onClose, anchorRect }: OverviewProps)
 
   const closeStyle: React.CSSProperties = anchorRect ? {
     position: "fixed",
-    left: anchorRect.left + anchorRect.width + 16, // À droite du bouton avec espace
+    left: anchorRect.left + (anchorRect.width - 48) / 2, // Centré exactement sur le bouton
     top: anchorRect.top + (anchorRect.height - 48) / 2,
     zIndex: 60
   } : { 
     position: "fixed", 
     right: 16, 
-    top: "max(16px, calc(env(safe-area-inset-top) + 8px))",
+    top: 16,
     zIndex: 60 
   };
 

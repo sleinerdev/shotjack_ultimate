@@ -25,14 +25,15 @@ html, body {
   overscroll-behavior: none;
 }
 
-/* Styles pour les safe areas */
-@supports (padding: max(0px)) {
-  .pb-safe-bottom {
-    padding-bottom: max(2rem, env(safe-area-inset-bottom));
-  }
-  
-  .pt-safe-top {
-    padding-top: max(1rem, env(safe-area-inset-top));
-  }
+/* Styles supprimés - plus de zones d'exclusion */
+
+/* Masquer la scrollbar pour la bande de joueurs */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 

@@ -10,6 +10,7 @@ import { CardsRow } from "./components/Card";
 import { TotalPill } from "./components/TotalPill";
 import { Controls } from "./components/Controls";
 import { Overview } from "./components/Overview";
+import { PlayersBand } from "./components/PlayersBand";
 import { ResultModal } from "./components/ResultModal";
 import { FlashOverlay } from "./components/FlashOverlay";
 import { WaitingOverlay } from "./components/WaitingOverlay";
@@ -73,6 +74,7 @@ export default function App() {
   const autoBJRef = useRef(false);
   const overviewBtnRef = useRef<HTMLButtonElement>(null);
   const [showRules, setShowRules] = useState(false);
+  const [overviewDisabled, setOverviewDisabled] = useState(false);
 
   const hardCloseSocket = () => {
     try {
@@ -318,7 +320,7 @@ export default function App() {
         distributed={distributed}
         drunk={drunk}
         onSettings={() => setShowSettings(true)} 
-        onOverview={() => setShowOverview(v => !v)} 
+        onOverview={() => !overviewDisabled && setShowOverview(v => !v)} 
         overviewOpen={showOverview}
         overviewBtnRef={overviewBtnRef}
       />;
@@ -388,41 +390,50 @@ export default function App() {
         )}
 
         {snapshot && snapshot.phase !== "lobby" && (
-          <div className="w-full max-w-md mx-auto px-4 py-6 text-white h-full flex flex-col">
-            <div className="flex-1 flex flex-col justify-center space-y-4 sm:space-y-6">
-              {/* Cartes du croupier */}
-              <div className="mx-auto w-full max-w-64 rounded-2xl bg-[#0f2731] p-3 sm:p-4">
-                <CardsRow 
-                  cards={snapshot.dealer.cards} 
-                  hideSecond={snapshot.dealer.hidden} 
-                  size="md" 
+          <div className="w-full h-full flex flex-col">
+            {/* Bande de joueurs */}
+            <PlayersBand 
+              snapshot={snapshot} 
+              currentPlayerId={snapshot.turn?.playerId}
+            />
+            
+            {/* Contenu du jeu */}
+            <div className="flex-1 w-full max-w-md mx-auto px-4 py-6 text-white flex flex-col">
+              <div className="flex-1 flex flex-col justify-center space-y-4 sm:space-y-6">
+                {/* Cartes du croupier */}
+                <div className="mx-auto w-full max-w-64 rounded-2xl bg-[#0f2731] p-3 sm:p-4">
+                  <CardsRow 
+                    cards={snapshot.dealer.cards} 
+                    hideSecond={snapshot.dealer.hidden} 
+                    size="md" 
+                  />
+                </div>
+                <TotalPill 
+                  values={dealerVisible.length ? safeTotals(dealerVisible) : ["—"]} 
+                  tight 
+                />
+
+                {/* Cartes du joueur */}
+                <div className="mx-auto w-full max-w-80 rounded-2xl bg-[#0f2731] p-3 sm:p-4">
+                  {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
+                </div>
+                {myActiveHand && (
+                  <TotalPill values={safeTotals(myActiveHand.cards)} tight />
+                )}
+              </div>
+
+              {/* Contrôles fixes en bas */}
+              <div className="flex-shrink-0 pb-4">
+                <Controls
+                  disabled={controlsDisabled}
+                  canDouble={canDoubleHand}
+                  canSplit={canSplitHand}
+                  onHit={() => sendAction("hit")}
+                  onStand={() => sendAction("stand")}
+                  onDouble={() => sendAction("double")}
+                  onSplit={() => sendAction("split")}
                 />
               </div>
-              <TotalPill 
-                values={dealerVisible.length ? safeTotals(dealerVisible) : ["—"]} 
-                tight 
-              />
-
-              {/* Cartes du joueur */}
-              <div className="mx-auto w-full max-w-80 rounded-2xl bg-[#0f2731] p-3 sm:p-4">
-                {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
-              </div>
-              {myActiveHand && (
-                <TotalPill values={safeTotals(myActiveHand.cards)} tight />
-              )}
-            </div>
-
-            {/* Contrôles fixes en bas */}
-            <div className="flex-shrink-0 pb-4">
-              <Controls
-                disabled={controlsDisabled}
-                canDouble={canDoubleHand}
-                canSplit={canSplitHand}
-                onHit={() => sendAction("hit")}
-                onStand={() => sendAction("stand")}
-                onDouble={() => sendAction("double")}
-                onSplit={() => sendAction("split")}
-              />
             </div>
           </div>
         )}
@@ -431,7 +442,11 @@ export default function App() {
       <Overview 
         show={showOverview} 
         snapshot={snapshot} 
-        onClose={() => setShowOverview(false)}
+        onClose={() => {
+          setShowOverview(false);
+          setOverviewDisabled(true);
+          setTimeout(() => setOverviewDisabled(false), 300); // Délai de 300ms
+        }}
         anchorRect={overviewBtnRef.current?.getBoundingClientRect() || null}
       />
       <WaitingOverlay show={awaitingOthers} />
