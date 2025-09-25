@@ -28,6 +28,27 @@ function short(){ return Math.random().toString(36).slice(2,8); }
 const conns = new Set(); // { ws, matchId?, playerId?, token? }
 const matches = new Map(); // id -> match
 
+// IDs de partie au format "ChiffreChiffreLettreLettre" (ex: 12AB)
+function generateMatchIdCustom(){
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const digits = "0123456789";
+
+  const digit1 = digits[Math.floor(Math.random() * digits.length)];
+  const digit2 = digits[Math.floor(Math.random() * digits.length)];
+  const letter1 = letters[Math.floor(Math.random() * letters.length)];
+  const letter2 = letters[Math.floor(Math.random() * letters.length)];
+
+  return `${digit1}${digit2}${letter1}${letter2}`;
+}
+
+function generateUniqueMatchId(){
+  let id;
+  do {
+    id = generateMatchIdCustom();
+  } while (matches.has(id));
+  return id;
+}
+
 function send(c, type, payload){ try{ c.ws.send(JSON.stringify({ type, ...payload })); }catch{} }
 function bcast(matchId, type, payload){ for(const c of conns) if(c.matchId===matchId) send(c,type,payload); }
 function snapshot(m){
@@ -43,7 +64,7 @@ function pushState(m){ bcast(m.id,"state",{ snapshot: snapshot(m) }); }
 
 /* ===== création de partie ===== */
 function newMatch(ownerId, name, token){
-  const id = short();
+  const id = generateUniqueMatchId();
   const m = {
     id, createdAt: Date.now(), round: 0,
     phase: "lobby",
