@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useWebSocket, waitForOpen } from "./hooks/useWebSocket";
 import { useGameState } from "./hooks/useGameState";
 import { Home } from "./components/Home";
@@ -10,14 +10,16 @@ import { CardsRow } from "./components/Card";
 import { TotalPill } from "./components/TotalPill";
 import { Controls } from "./components/Controls";
 import { Overview } from "./components/Overview";
+import { PlayersBand } from "./components/PlayersBand";
 import { ResultModal } from "./components/ResultModal";
 import { FlashOverlay } from "./components/FlashOverlay";
 import { WaitingOverlay } from "./components/WaitingOverlay";
 import { SettingsModal } from "./components/SettingsModal";
+import { RulesModal } from "./components/RulesModal";
 import { getRandomName } from "./utils/names";
 import { safeTotals, isBlackjack, canSplit, canDouble } from "./utils/game";
 import { WS_URL, TIMEOUTS } from "./constants";
-import type { Snapshot, PlayerOnline, ServerModal, FlashState, PlayerSession } from "./types";
+import type { ServerModal } from "./types";
 
 export default function App() {
   // Charger la session initiale
@@ -30,10 +32,8 @@ export default function App() {
     }
   })();
 
-  const [screen, setScreen] = useState<"home" | "created" | "online">(() => 
-    initialSession ? "online" : "home"
-  );
-  const [name, setName] = useState<string>(() => 
+  const [screen, setScreen] = useState<"home" | "created" | "online">("home");
+  const [name, setName] = useState<string>(() =>
     initialSession?.name || getRandomName()
   );
 
@@ -64,16 +64,17 @@ export default function App() {
     myTurn,
     myActiveHand,
     isHost,
-    onModalConfirm
   } = useGameState();
 
-  const { open, send, messages, wsRef } = useWebSocket(
+  const { open, send, messages, wsRef, clearQueue } = useWebSocket(
     screen !== "home" ? WS_URL : "ws://invalid"
   );
 
   const flashPersistRef = useRef(false);
   const autoBJRef = useRef(false);
   const overviewBtnRef = useRef<HTMLButtonElement>(null);
+  const [showRules, setShowRules] = useState(false);
+  const [overviewDisabled, setOverviewDisabled] = useState(false);
 
   const hardCloseSocket = () => {
     try {
@@ -90,6 +91,8 @@ export default function App() {
     } catch (error) {
       console.warn('Error sending leave message:', error);
     }
+    
+    // Nettoyer tous les états
     clearSession();
     setShowSettings(false);
     setShowOverview(false);
@@ -99,15 +102,20 @@ export default function App() {
     setMe(null);
     processedRef.current = 0;
     
-    // NE PAS reset leftRef ici - on attend le message "left" du serveur
+    // Reset leftRef après un court délai pour permettre au message leave_match d'être envoyé
+    setTimeout(() => {
+      leftRef.current = false;
+    }, 100);
+    
+    clearQueue(); // Nettoyer la file d'attente WebSocket
     hardCloseSocket();
+    
+    // S'assurer que l'écran revient à home
     setScreen("home");
   };
 
   const createMatch = () => {
-    leftRef.current = false; // Reset leftRef pour nouvelle partie
-    const finalName = name.trim() || getRandomName();
-    setName(finalName);
+    const finalName = name || getRandomName();
     const action = () => send({ type: "create_match", name: finalName });
     setScreen("created");
     if (!open) waitForOpen(wsRef, action);
@@ -115,9 +123,7 @@ export default function App() {
   };
 
   const joinMatch = (id: string) => {
-    leftRef.current = false; // Reset leftRef pour nouvelle partie  
-    const finalName = name.trim() || getRandomName();
-    setName(finalName);
+    const finalName = name || getRandomName();
     const action = () => send({ type: "join_match", matchId: id, name: finalName });
     setScreen("online");
     if (!open) waitForOpen(wsRef, action);
@@ -128,23 +134,29 @@ export default function App() {
   const sendAction = (action: "hit" | "stand" | "double" | "split") => 
     send({ type: "action", action });
 
-   // Tentative de reconnexion si session existante
+   // Tentative de reconnexion si session existante (seulement au démarrage)
    useEffect(() => {
-     if (screen !== "online") return;
+     if (screen !== "home") return;
      if (leftRef.current) return; // Ne pas se reconnecter si on a quitté explicitement
+     
      const session = loadSession();
      if (!session) return;
-     
-     const doReconnect = () => send({
-       type: "reconnect",
-       matchId: session.matchId,
-       token: session.token,
-       name: name || session.name || "Joueur"
-     });
-     
+
+     // Reconnexion automatique uniquement au démarrage de l'app
+     const doReconnect = () => {
+       setScreen("online");
+       send({
+         type: "reconnect",
+         matchId: session.matchId,
+         token: session.token,
+         name: name || session.name || getRandomName()
+       });
+     };
+
      if (!open) waitForOpen(wsRef, doReconnect);
      else doReconnect();
-   }, [screen, open, send, name, wsRef, loadSession, leftRef]);
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [open]);
 
   // Traitement des messages WebSocket
   useEffect(() => {
@@ -153,33 +165,32 @@ export default function App() {
       
       const msg = messages[i];
 
-       if (msg.type === "left") {
-         // serveur a confirmé la sortie -> on s'assure de rester sur home
-         leftRef.current = true;
-         clearSession();
-         hardCloseSocket();
-         setScreen("home");
-         continue;
-       }
+      // Note: pas de gestionnaire "left" car le serveur n'envoie plus ce message
 
       if (msg.type === "created") {
-        setMe({ playerId: msg.playerId, matchId: msg.matchId, token: msg.token });
-        persistSession({ matchId: msg.matchId, token: msg.token, name });
+        leftRef.current = false; // Reset après confirmation serveur
+        const session = { playerId: msg.playerId, matchId: msg.matchId, token: msg.token, name };
+        setMe(session);
+        persistSession(session);
       }
 
       if (msg.type === "joined") {
-        setMe({ playerId: msg.playerId, matchId: msg.matchId, token: msg.token });
-        persistSession({ matchId: msg.matchId, token: msg.token, name });
+        leftRef.current = false; // Reset après confirmation serveur
+        const session = { playerId: msg.playerId, matchId: msg.matchId, token: msg.token, name };
+        setMe(session);
+        persistSession(session);
       }
 
       if (msg.type === "rejoined") {
-        setMe({ playerId: msg.playerId, matchId: msg.matchId, token: msg.token });
+        leftRef.current = false; // Reset après confirmation serveur
+        const session = { playerId: msg.playerId, matchId: msg.matchId, token: msg.token, name };
+        setMe(session);
         setScreen("online");
       }
 
       if (msg.type === "state") {
-        setSnapshot(msg.snapshot);
         const round = msg.snapshot.round;
+        const phase = msg.snapshot.phase;
 
         // Reset client quand le round avance
         if (round > (prevRoundRef.current || 0)) {
@@ -194,8 +205,15 @@ export default function App() {
         prevRoundRef.current = round;
         lastStateRoundRef.current = round;
 
+        // Éviter le flash du lobby - ne pas afficher lobby si on est en attente
+        if (phase === "lobby" && awaitingOthers) {
+          // Ne pas mettre à jour le snapshot pour éviter le flash
+          // Le snapshot sera mis à jour quand la phase change
+        } else {
+          setSnapshot(msg.snapshot);
+        }
+
         if (awaitingOthers) {
-          const phase = msg.snapshot.phase;
           const advanced = (ackedRoundRef.current !== null && round > ackedRoundRef.current);
           if (advanced || (phase !== "resolve" && phase !== "distribute")) {
             setAwaitingOthers(false);
@@ -267,7 +285,7 @@ export default function App() {
     !myActiveHand || 
     !!modal || 
     isBlackjack(myActiveHand?.cards || []) || 
-    safeTotals(myActiveHand?.cards || []).slice(-1)[0] >= 21;
+    (safeTotals(myActiveHand?.cards || []).every(total => total > 21));
 
   const canDoubleHand = !!myActiveHand && canDouble(myActiveHand.cards, myActiveHand.noHit);
   const canSplitHand = !!myActiveHand && canSplit(myActiveHand.cards);
@@ -302,108 +320,134 @@ export default function App() {
         distributed={distributed}
         drunk={drunk}
         onSettings={() => setShowSettings(true)} 
-        onOverview={() => setShowOverview(v => !v)} 
+        onOverview={() => !overviewDisabled && setShowOverview(v => !v)} 
         overviewOpen={showOverview}
         overviewBtnRef={overviewBtnRef}
       />;
 
   if (screen === "home") {
     return (
-      <Home
-        name={name}
-        setName={(value) => {
-          setName(value);
-          const session = loadSession();
-          if (session) {
-            persistSession({ ...session, name: value || "Joueur" });
-          }
-        }}
-        onCreate={createMatch}
-        onJoin={joinMatch}
-      />
+      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col pt-safe-top">
+        <Home
+          name={name}
+          setName={(value) => {
+            setName(value);
+            const session = loadSession();
+            if (session) {
+              persistSession({ ...session, name: value || "Joueur" });
+            }
+          }}
+          onCreate={createMatch}
+          onJoin={joinMatch}
+        />
+      </div>
     );
   }
 
   if (screen === "created") {
     return (
-      <CreatedScreen
-        matchId={me?.matchId || "—"}
-        onEnter={() => setScreen("online")}
-      />
+      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col pt-safe-top">
+        <CreatedScreen
+          matchId={me?.matchId || "—"}
+          onEnter={() => setScreen("online")}
+        />
+      </div>
     );
   }
 
   const inLobby = snapshot?.phase === "lobby" || !snapshot;
 
   return (
-    <div className="min-h-screen w-full" style={{ background: "#213743" }}>
-      {header}
+    <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col" style={{ background: "#213743" }}>
+      {/* Header fixe avec safe area */}
+      <div className="flex-shrink-0 pt-safe-top">
+        {header}
+      </div>
 
-      {inLobby && (
-        <div className="max-w-md mx-auto">
-          <LobbyList 
-            players={snapshot?.players || []} 
-            order={snapshot?.order || (me ? [me.playerId] : [])} 
-          />
-          <div className="px-4 pb-8 pt-5">
-            {isHost ? (
-              <button 
-                onClick={startRound} 
-                className="w-full rounded-[28px] px-4 py-4 text-xl font-extrabold bg-gradient-to-b from-pink-400 to-pink-600 shadow-[0_12px_0_#8b184e]"
-              >
-                Démarrer la manche
-              </button>
-            ) : (
-              <div className="text-center text-white/70">En attente de l'hôte…</div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {snapshot && snapshot.phase !== "lobby" && (
-        <div className="max-w-md mx-auto px-4 py-6 text-white">
-          <div className="mt-2 space-y-7">
-            {/* Cartes du croupier */}
-            <div className="mx-auto w-64 rounded-2xl bg-[#0f2731] p-4">
-              <CardsRow 
-                cards={snapshot.dealer.cards} 
-                hideSecond={snapshot.dealer.hidden} 
-                size="md" 
+      {/* Contenu principal scrollable */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        {inLobby && (
+          <div className="w-full max-w-md mx-auto h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <LobbyList 
+                players={snapshot?.players || []} 
+                order={snapshot?.order || (me ? [me.playerId] : [])} 
               />
             </div>
-            <TotalPill 
-              values={dealerVisible.length ? safeTotals(dealerVisible) : ["—"]} 
-              tight 
+            <div className="flex-shrink-0 px-4 pb-4 pt-5">
+              {isHost ? (
+                <button 
+                  onClick={startRound} 
+                  className="w-full rounded-[28px] px-4 py-4 text-xl font-extrabold text-white bg-gradient-to-b from-pink-400 to-pink-600 shadow-[0_12px_0_#8b184e] active:shadow-[0_4px_0_#8b184e] active:translate-y-2 transition-all"
+                >
+                  Démarrer la manche
+                </button>
+              ) : (
+                <div className="text-center text-white/70 py-4">En attente de l'hôte…</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {snapshot && snapshot.phase !== "lobby" && (
+          <div className="w-full h-full flex flex-col">
+            {/* Bande de joueurs */}
+            <PlayersBand 
+              snapshot={snapshot} 
+              currentPlayerId={snapshot.turn?.playerId}
+              myPlayerId={me?.playerId}
             />
+            
+            {/* Contenu du jeu - ajusté pour contrôles au-dessus safe area */}
+            <div className="flex-1 w-full max-w-md mx-auto px-4 text-white flex flex-col overflow-hidden">
+              <div className="flex-1 flex flex-col justify-center space-y-2 py-2">
+                {/* Cartes du croupier - plus compactes */}
+                <div className="mx-auto w-full max-w-52 rounded-lg bg-[#0f2731] p-2">
+                  <CardsRow 
+                    cards={snapshot.dealer.cards} 
+                    hideSecond={snapshot.dealer.hidden} 
+                    size="md" 
+                  />
+                </div>
+                <TotalPill 
+                  values={dealerVisible.length ? safeTotals(dealerVisible) : ["—"]} 
+                  tight 
+                />
 
-            {/* Cartes du joueur */}
-            <div className="mx-auto w-80 rounded-2xl bg-[#0f2731] p-4">
-              {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
-            </div>
-            {myActiveHand && (
-              <TotalPill values={safeTotals(myActiveHand.cards)} tight />
-            )}
+                {/* Cartes du joueur - plus compactes */}
+                <div className="mx-auto w-full max-w-64 rounded-lg bg-[#0f2731] p-2">
+                  {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
+                </div>
+                {myActiveHand && (
+                  <TotalPill values={safeTotals(myActiveHand.cards)} tight />
+                )}
+              </div>
 
-            {/* Contrôles */}
-            <div className="mx-auto w-full">
-              <Controls
-                disabled={controlsDisabled}
-                canDouble={canDoubleHand}
-                canSplit={canSplitHand}
-                onHit={() => sendAction("hit")}
-                onStand={() => sendAction("stand")}
-                onDouble={() => sendAction("double")}
-                onSplit={() => sendAction("split")}
-              />
+              {/* Contrôles au-dessus de la safe area iOS */}
+              <div className="flex-shrink-0 pb-safe-bottom">
+                <Controls
+                  disabled={controlsDisabled}
+                  canDouble={canDoubleHand}
+                  canSplit={canSplitHand}
+                  onHit={() => sendAction("hit")}
+                  onStand={() => sendAction("stand")}
+                  onDouble={() => sendAction("double")}
+                  onSplit={() => sendAction("split")}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <Overview 
         show={showOverview} 
         snapshot={snapshot} 
-        onClose={() => setShowOverview(false)}
+        onClose={() => {
+          setShowOverview(false);
+          setOverviewDisabled(true);
+          setTimeout(() => setOverviewDisabled(false), 300); // Délai de 300ms
+        }}
         anchorRect={overviewBtnRef.current?.getBoundingClientRect() || null}
       />
       <WaitingOverlay show={awaitingOthers} />
@@ -416,7 +460,17 @@ export default function App() {
       {showSettings && (
         <SettingsModal 
           onClose={() => setShowSettings(false)} 
-          onHome={resetToHome} 
+          onHome={resetToHome}
+          onRules={() => {
+            setShowSettings(false);
+            setShowRules(true);
+          }}
+        />
+      )}
+      
+      {showRules && (
+        <RulesModal 
+          onClose={() => setShowRules(false)} 
         />
       )}
     </div>
