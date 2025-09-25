@@ -8,24 +8,23 @@ interface HomeProps {
   onJoin: (id: string) => void;
 }
 
-const MATCH_ID_PATTERN = /^[A-Z0-9]{4,10}$/;
+const MAX_MATCH_ID_LENGTH = 36;
 
 const sanitizeMatchId = (raw: string) =>
   raw
     .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 10);
+    .slice(0, MAX_MATCH_ID_LENGTH);
 
 export function Home({ name, setName, onCreate, onJoin }: HomeProps) {
   const [matchIdInput, setMatchIdInput] = useState("");
   const [matchIdError, setMatchIdError] = useState<string | null>(null);
 
-  const canJoin = useMemo(() => MATCH_ID_PATTERN.test(matchIdInput), [matchIdInput]);
+  const canJoin = useMemo(() => matchIdInput.trim().length > 0, [matchIdInput]);
 
   const handleJoin = () => {
     const trimmedId = matchIdInput.trim();
-    if (!MATCH_ID_PATTERN.test(trimmedId)) {
-      setMatchIdError("Format attendu : 4 à 10 caractères alphanumériques");
+    if (!trimmedId) {
+      setMatchIdError("Veuillez renseigner un identifiant de partie");
       return;
     }
 
