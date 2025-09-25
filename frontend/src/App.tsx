@@ -398,8 +398,8 @@ export default function App() {
               myPlayerId={me?.playerId}
             />
             
-            {/* Contenu du jeu - fixe sans scroll avec espace pour contrôles */}
-            <div className="flex-1 w-full max-w-md mx-auto px-4 py-3 text-white flex flex-col overflow-hidden pb-20">
+            {/* Contenu du jeu - fixe sans scroll */}
+            <div className="flex-1 w-full max-w-md mx-auto px-4 py-3 text-white flex flex-col overflow-hidden">
               <div className="flex-1 flex flex-col justify-center space-y-3">
                 {/* Cartes du croupier - réduites */}
                 <div className="mx-auto w-full max-w-56 rounded-xl bg-[#0f2731] p-2.5">
@@ -423,19 +423,17 @@ export default function App() {
                 )}
               </div>
 
-              {/* Contrôles fixes en bas avec support iOS PWA */}
-              <div className="flex-shrink-0 pb-2 ios-pwa-controls bg-[#213743] px-4">
-                <div className="w-full max-w-md mx-auto">
-                  <Controls
-                    disabled={controlsDisabled}
-                    canDouble={canDoubleHand}
-                    canSplit={canSplitHand}
-                    onHit={() => sendAction("hit")}
-                    onStand={() => sendAction("stand")}
-                    onDouble={() => sendAction("double")}
-                    onSplit={() => sendAction("split")}
-                  />
-                </div>
+              {/* Contrôles fixes en bas avec minimal padding */}
+              <div className="flex-shrink-0 pb-2">
+                <Controls
+                  disabled={controlsDisabled}
+                  canDouble={canDoubleHand}
+                  canSplit={canSplitHand}
+                  onHit={() => sendAction("hit")}
+                  onStand={() => sendAction("stand")}
+                  onDouble={() => sendAction("double")}
+                  onSplit={() => sendAction("split")}
+                />
               </div>
             </div>
           </div>

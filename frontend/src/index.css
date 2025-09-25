@@ -32,19 +32,6 @@ html, body {
   }
 }
 
-/* Styles pour iOS PWA controls fixes */
-@supports (padding: env(safe-area-inset-bottom)) {
-  .ios-pwa-controls {
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-bottom: constant(safe-area-inset-bottom);
-    position: fixed;
-    bottom: 0;
-    z-index: 999;
-    left: 0;
-    right: 0;
-  }
-}
-
 /* Masquer la scrollbar pour la bande de joueurs */
 .scrollbar-hide {
   -ms-overflow-style: none;
