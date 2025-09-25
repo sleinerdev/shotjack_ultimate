@@ -8,30 +8,13 @@ interface HomeProps {
   onJoin: (id: string) => void;
 }
 
-const MATCH_ID_PATTERN = /^\d{2}[A-Z]{2}$/;
+const MATCH_ID_PATTERN = /^[A-Z0-9]{4,10}$/;
 
-const sanitizeMatchId = (raw: string) => {
-  const cleaned = raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  let digits = "";
-  let letters = "";
-
-  for (const char of cleaned) {
-    if (digits.length < 2) {
-      if (/\d/.test(char)) {
-        digits += char;
-      }
-      continue;
-    }
-
-    if (letters.length < 2 && /[A-Z]/.test(char)) {
-      letters += char;
-    }
-
-    if (digits.length === 2 && letters.length === 2) break;
-  }
-
-  return digits + letters;
-};
+const sanitizeMatchId = (raw: string) =>
+  raw
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 10);
 
 export function Home({ name, setName, onCreate, onJoin }: HomeProps) {
   const [matchIdInput, setMatchIdInput] = useState("");
@@ -42,7 +25,7 @@ export function Home({ name, setName, onCreate, onJoin }: HomeProps) {
   const handleJoin = () => {
     const trimmedId = matchIdInput.trim();
     if (!MATCH_ID_PATTERN.test(trimmedId)) {
-      setMatchIdError("Format attendu : 12AB");
+      setMatchIdError("Format attendu : 4 à 10 caractères alphanumériques");
       return;
     }
 
