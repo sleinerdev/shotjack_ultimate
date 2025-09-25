@@ -327,7 +327,7 @@ export default function App() {
 
   if (screen === "home") {
     return (
-      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col pt-safe-top">
+      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col">
         <Home
           name={name}
           setName={(value) => {
@@ -346,7 +346,7 @@ export default function App() {
 
   if (screen === "created") {
     return (
-      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col pt-safe-top">
+      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col">
         <CreatedScreen
           matchId={me?.matchId || "—"}
           onEnter={() => setScreen("online")}
@@ -359,8 +359,8 @@ export default function App() {
 
   return (
     <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col" style={{ background: "#213743" }}>
-      {/* Header fixe avec safe area */}
-      <div className="flex-shrink-0 pt-safe-top">
+      {/* Header fixe */}
+      <div className="flex-shrink-0">
         {header}
       </div>
 
@@ -392,31 +392,31 @@ export default function App() {
         {snapshot && snapshot.phase !== "lobby" && (
           <div className="w-full h-full flex flex-col">
             {/* Bande de joueurs */}
-            <PlayersBand 
-              snapshot={snapshot} 
+            <PlayersBand
+              snapshot={snapshot}
               currentPlayerId={snapshot.turn?.playerId}
               myPlayerId={me?.playerId}
             />
-            
+
             {/* Contenu du jeu - fixe sans scroll */}
-            <div className="flex-1 w-full max-w-md mx-auto px-4 py-3 text-white flex flex-col overflow-hidden">
-              <div className="flex-1 flex flex-col justify-center space-y-3">
+            <div className="flex-1 w-full max-w-md mx-auto px-4 py-2 text-white flex flex-col overflow-hidden">
+              <div className="flex-1 flex flex-col justify-center space-y-2.5">
                 {/* Cartes du croupier - réduites */}
-                <div className="mx-auto w-full max-w-56 rounded-xl bg-[#0f2731] p-2.5">
-                  <CardsRow 
-                    cards={snapshot.dealer.cards} 
-                    hideSecond={snapshot.dealer.hidden} 
-                    size="md" 
+                <div className="mx-auto w-full max-w-[210px] rounded-xl bg-[#0f2731] p-2">
+                  <CardsRow
+                    cards={snapshot.dealer.cards}
+                    hideSecond={snapshot.dealer.hidden}
+                    size="sm"
                   />
                 </div>
-                <TotalPill 
-                  values={dealerVisible.length ? safeTotals(dealerVisible) : ["—"]} 
-                  tight 
+                <TotalPill
+                  values={dealerVisible.length ? safeTotals(dealerVisible) : ["—"]}
+                  tight
                 />
 
                 {/* Cartes du joueur - réduites */}
-                <div className="mx-auto w-full max-w-72 rounded-xl bg-[#0f2731] p-2.5">
-                  {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
+                <div className="mx-auto w-full max-w-[260px] rounded-xl bg-[#0f2731] p-2">
+                  {myActiveHand && <CardsRow cards={myActiveHand.cards} size="md" />}
                 </div>
                 {myActiveHand && (
                   <TotalPill values={safeTotals(myActiveHand.cards)} tight />

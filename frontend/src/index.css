@@ -25,13 +25,6 @@ html, body {
   overscroll-behavior: none;
 }
 
-/* Styles pour safe area top uniquement */
-@supports (padding: max(0px)) {
-  .pt-safe-top {
-    padding-top: max(1rem, env(safe-area-inset-top));
-  }
-}
-
 /* Masquer la scrollbar pour la bande de joueurs */
 .scrollbar-hide {
   -ms-overflow-style: none;

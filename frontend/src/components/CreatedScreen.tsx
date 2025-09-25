@@ -16,7 +16,7 @@ export function CreatedScreen({ matchId, onEnter }: CreatedScreenProps) {
 
   return (
     <div className="h-full w-full bg-[#070814] text-white flex flex-col overflow-hidden">
-      <div className="flex-1 flex flex-col justify-start pt-16 px-6">
+      <div className="flex-1 flex flex-col justify-start pt-12 px-6">
         <div className="w-full max-w-sm mx-auto text-center">
           <Logo />
           
