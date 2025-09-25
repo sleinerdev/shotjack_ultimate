@@ -8,9 +8,11 @@ interface HomeProps {
   onJoin: (id: string) => void;
 }
 
+
 const MAX_MATCH_ID_LENGTH = 6;
 
 const sanitizeMatchId = (raw: string) => raw.slice(0, MAX_MATCH_ID_LENGTH);
+
 
 export function Home({ name, setName, onCreate, onJoin }: HomeProps) {
   const [matchIdInput, setMatchIdInput] = useState("");
