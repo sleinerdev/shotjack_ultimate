@@ -8,12 +8,11 @@ interface HomeProps {
   onJoin: (id: string) => void;
 }
 
-const MAX_MATCH_ID_LENGTH = 36;
 
-const sanitizeMatchId = (raw: string) =>
-  raw
-    .toUpperCase()
-    .slice(0, MAX_MATCH_ID_LENGTH);
+const MAX_MATCH_ID_LENGTH = 6;
+
+const sanitizeMatchId = (raw: string) => raw.slice(0, MAX_MATCH_ID_LENGTH);
+
 
 export function Home({ name, setName, onCreate, onJoin }: HomeProps) {
   const [matchIdInput, setMatchIdInput] = useState("");
@@ -61,7 +60,7 @@ export function Home({ name, setName, onCreate, onJoin }: HomeProps) {
                 className={`flex-1 rounded-2xl px-4 py-3 outline-none touch-manipulation transition-colors ${
                   matchIdError ? "bg-red-500/10 border border-red-400/60" : "bg-white/10"
                 }`}
-                placeholder="ID de partie (ex: 12AB)"
+                placeholder="ID de partie (ex: 12ab)"
                 />
               <button
                 onClick={handleJoin}

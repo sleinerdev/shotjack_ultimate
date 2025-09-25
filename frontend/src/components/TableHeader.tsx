@@ -31,20 +31,18 @@ export function TableHeader({ distributed, drunk, onSettings, onOverview, overvi
         </button>
         
         <div className="flex items-center gap-3">
-          <div className="text-center">
-            <div className="bg-green-500/20 border border-green-400/30 rounded-2xl w-[88px] h-[72px] flex flex-col justify-between items-center py-3">
-              <div className="text-[11px] text-green-300 font-semibold uppercase tracking-wider">Distribué</div>
-              <div className="text-2xl font-bold text-white leading-none">{distributed}</div>
-            </div>
+
+          <div className="bg-green-500/20 border border-green-400/30 rounded-full h-10 px-4 flex items-center gap-2">
+            <div className="text-[10px] text-green-300 font-semibold uppercase tracking-wider">Distribué</div>
+            <div className="text-xl font-bold text-white leading-none">{distributed}</div>
           </div>
-          <div className="text-center">
-            <div className="bg-red-500/20 border border-red-400/30 rounded-2xl w-[88px] h-[72px] flex flex-col justify-between items-center py-3">
-              <div className="text-[11px] text-red-300 font-semibold uppercase tracking-wider">Bu</div>
-              <div className="text-2xl font-bold text-white leading-none">{drunk}</div>
-            </div>
+          <div className="bg-red-500/20 border border-red-400/30 rounded-full h-10 px-4 flex items-center gap-2">
+            <div className="text-[10px] text-red-300 font-semibold uppercase tracking-wider">Bu</div>
+            <div className="text-xl font-bold text-white leading-none">{drunk}</div>
+
           </div>
         </div>
-        
+
         <button onClick={onSettings} className="h-10 w-10 rounded-lg bg-white/10">
           ⚙
         </button>
