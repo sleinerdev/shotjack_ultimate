@@ -39,6 +39,7 @@ const server = createServer((req, res) => {
 const wss = new WebSocketServer({ server });
 server.listen(PORT, () => {
   console.log(`🚀 ShotJack Ultimate Server listening on ${PORT}`);
+  console.log(`🔧 CODE VERSION: FIXED-MATCHID-v2 (Format 12AB expected)`);
 });
 
 /* ===== Cartes & utils ===== */
@@ -77,6 +78,7 @@ function generateUniqueMatchId(){
   do {
     id = generateMatchIdCustom();
   } while (matches.has(id));
+  console.log(`🎯 MATCH ID GENERATED: ${id} (Format: ${/^[0-9]{2}[A-Z]{2}$/.test(id) ? 'CORRECT' : 'INCORRECT'})`);
   return id;
 }
 
