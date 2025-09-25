@@ -398,11 +398,11 @@ export default function App() {
               myPlayerId={me?.playerId}
             />
             
-            {/* Contenu du jeu - ajusté pour contrôles au-dessus safe area */}
-            <div className="flex-1 w-full max-w-md mx-auto px-4 text-white flex flex-col overflow-hidden">
-              <div className="flex-1 flex flex-col justify-center space-y-2 py-2">
-                {/* Cartes du croupier - plus compactes */}
-                <div className="mx-auto w-full max-w-52 rounded-lg bg-[#0f2731] p-2">
+            {/* Contenu du jeu - fixe sans scroll avec espace pour contrôles */}
+            <div className="flex-1 w-full max-w-md mx-auto px-4 py-3 text-white flex flex-col overflow-hidden pb-20">
+              <div className="flex-1 flex flex-col justify-center space-y-3">
+                {/* Cartes du croupier - réduites */}
+                <div className="mx-auto w-full max-w-56 rounded-xl bg-[#0f2731] p-2.5">
                   <CardsRow 
                     cards={snapshot.dealer.cards} 
                     hideSecond={snapshot.dealer.hidden} 
@@ -414,8 +414,8 @@ export default function App() {
                   tight 
                 />
 
-                {/* Cartes du joueur - plus compactes */}
-                <div className="mx-auto w-full max-w-64 rounded-lg bg-[#0f2731] p-2">
+                {/* Cartes du joueur - réduites */}
+                <div className="mx-auto w-full max-w-72 rounded-xl bg-[#0f2731] p-2.5">
                   {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
                 </div>
                 {myActiveHand && (
@@ -423,17 +423,19 @@ export default function App() {
                 )}
               </div>
 
-              {/* Contrôles au-dessus de la safe area iOS */}
-              <div className="flex-shrink-0 pb-safe-bottom">
-                <Controls
-                  disabled={controlsDisabled}
-                  canDouble={canDoubleHand}
-                  canSplit={canSplitHand}
-                  onHit={() => sendAction("hit")}
-                  onStand={() => sendAction("stand")}
-                  onDouble={() => sendAction("double")}
-                  onSplit={() => sendAction("split")}
-                />
+              {/* Contrôles fixes en bas avec support iOS PWA */}
+              <div className="flex-shrink-0 pb-2 ios-pwa-controls bg-[#213743] px-4">
+                <div className="w-full max-w-md mx-auto">
+                  <Controls
+                    disabled={controlsDisabled}
+                    canDouble={canDoubleHand}
+                    canSplit={canSplitHand}
+                    onHit={() => sendAction("hit")}
+                    onStand={() => sendAction("stand")}
+                    onDouble={() => sendAction("double")}
+                    onSplit={() => sendAction("split")}
+                  />
+                </div>
               </div>
             </div>
           </div>
