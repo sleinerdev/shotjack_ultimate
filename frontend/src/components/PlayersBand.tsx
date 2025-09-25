@@ -19,11 +19,6 @@ export function PlayersBand({ snapshot, currentPlayerId, myPlayerId }: PlayersBa
     color: SLOT_COLORS[i % SLOT_COLORS.length]
   })).filter(x => !!x.player && x.player.id !== myPlayerId); // Exclure le joueur actuel
 
-  // Ne pas afficher le bandeau s'il n'y a pas d'autres joueurs
-  if (players.length === 0) {
-    return null;
-  }
-
   const minSwipeDistance = 50;
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -51,6 +46,11 @@ export function PlayersBand({ snapshot, currentPlayerId, myPlayerId }: PlayersBa
       }
     }
   };
+
+  // Ne pas afficher le bandeau s'il n'y a pas d'autres joueurs
+  if (players.length === 0) {
+    return null;
+  }
 
   return (
     <div className="bg-[#1a2b37] py-2 px-3 border-b border-white/10">

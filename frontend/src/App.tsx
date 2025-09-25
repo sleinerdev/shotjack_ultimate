@@ -10,7 +10,6 @@ import { CardsRow } from "./components/Card";
 import { TotalPill } from "./components/TotalPill";
 import { Controls } from "./components/Controls";
 import { Overview } from "./components/Overview";
-import { PlayersBand } from "./components/PlayersBand";
 import { ResultModal } from "./components/ResultModal";
 import { FlashOverlay } from "./components/FlashOverlay";
 import { WaitingOverlay } from "./components/WaitingOverlay";
@@ -310,118 +309,96 @@ export default function App() {
 
   if (screen === "home") {
     return (
-      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col pt-safe-top">
-        <Home
-          name={name}
-          setName={(value) => {
-            setName(value);
-            const session = loadSession();
-            if (session) {
-              persistSession({ ...session, name: value || "Joueur" });
-            }
-          }}
-          onCreate={createMatch}
-          onJoin={joinMatch}
-        />
-      </div>
+      <Home
+        name={name}
+        setName={(value) => {
+          setName(value);
+          const session = loadSession();
+          if (session) {
+            persistSession({ ...session, name: value || "Joueur" });
+          }
+        }}
+        onCreate={createMatch}
+        onJoin={joinMatch}
+      />
     );
   }
 
   if (screen === "created") {
     return (
-      <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col pt-safe-top">
-        <CreatedScreen
-          matchId={me?.matchId || "—"}
-          onEnter={() => setScreen("online")}
-        />
-      </div>
+      <CreatedScreen
+        matchId={me?.matchId || "—"}
+        onEnter={() => setScreen("online")}
+      />
     );
   }
 
   const inLobby = snapshot?.phase === "lobby" || !snapshot;
 
   return (
-    <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col" style={{ background: "#213743" }}>
-      {/* Header fixe avec safe area */}
-      <div className="flex-shrink-0 pt-safe-top">
-        {header}
-      </div>
+    <div className="min-h-screen w-full" style={{ background: "#213743" }}>
+      {header}
 
-      {/* Contenu principal scrollable */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        {inLobby && (
-          <div className="w-full max-w-md mx-auto h-full flex flex-col">
-            <div className="flex-1 overflow-y-auto">
-              <LobbyList 
-                players={snapshot?.players || []} 
-                order={snapshot?.order || (me ? [me.playerId] : [])} 
+      {inLobby && (
+        <div className="max-w-md mx-auto">
+          <LobbyList 
+            players={snapshot?.players || []} 
+            order={snapshot?.order || (me ? [me.playerId] : [])} 
+          />
+          <div className="px-4 pb-8 pt-5">
+            {isHost ? (
+              <button 
+                onClick={startRound} 
+                className="w-full rounded-[28px] px-4 py-4 text-xl font-extrabold bg-gradient-to-b from-pink-400 to-pink-600 shadow-[0_12px_0_#8b184e]"
+              >
+                Démarrer la manche
+              </button>
+            ) : (
+              <div className="text-center text-white/70">En attente de l'hôte…</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {snapshot && snapshot.phase !== "lobby" && (
+        <div className="max-w-md mx-auto px-4 py-6 text-white">
+          <div className="mt-2 space-y-7">
+            {/* Cartes du croupier */}
+            <div className="mx-auto w-64 rounded-2xl bg-[#0f2731] p-4">
+              <CardsRow 
+                cards={snapshot.dealer.cards} 
+                hideSecond={snapshot.dealer.hidden} 
+                size="md" 
               />
             </div>
-            <div className="flex-shrink-0 px-4 pb-8 pt-5">
-              {isHost ? (
-                <button 
-                  onClick={startRound} 
-                  className="w-full rounded-[28px] px-4 py-4 text-xl font-extrabold text-white bg-gradient-to-b from-pink-400 to-pink-600 shadow-[0_12px_0_#8b184e] active:shadow-[0_4px_0_#8b184e] active:translate-y-2 transition-all"
-                >
-                  Démarrer la manche
-                </button>
-              ) : (
-                <div className="text-center text-white/70 py-4">En attente de l'hôte…</div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {snapshot && snapshot.phase !== "lobby" && (
-          <div className="w-full h-full flex flex-col">
-            {/* Bande de joueurs - scrollable uniquement horizontalement */}
-            <PlayersBand 
-              snapshot={snapshot} 
-              currentPlayerId={snapshot.turn?.playerId}
-              myPlayerId={me?.playerId}
+            <TotalPill 
+              values={dealerVisible.length ? safeTotals(dealerVisible) : ["—"]} 
+              tight 
             />
-            
-            {/* Contenu du jeu - fixe, pas de scroll vertical */}
-            <div className="flex-1 w-full max-w-md mx-auto px-4 text-white flex flex-col overflow-hidden">
-              <div className="flex-1 flex flex-col justify-center space-y-3 py-3">
-                {/* Cartes du croupier - plus compactes */}
-                <div className="mx-auto w-full max-w-52 rounded-lg bg-[#0f2731] p-2">
-                  <CardsRow 
-                    cards={snapshot.dealer.cards} 
-                    hideSecond={snapshot.dealer.hidden} 
-                    size="md" 
-                  />
-                </div>
-                <TotalPill 
-                  values={dealerVisible.length ? safeTotals(dealerVisible) : ["—"]} 
-                  tight 
-                />
 
-                {/* Cartes du joueur - plus compactes */}
-                <div className="mx-auto w-full max-w-64 rounded-lg bg-[#0f2731] p-2">
-                  {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
-                </div>
-                {myActiveHand && (
-                  <TotalPill values={safeTotals(myActiveHand.cards)} tight />
-                )}
-              </div>
+            {/* Cartes du joueur */}
+            <div className="mx-auto w-80 rounded-2xl bg-[#0f2731] p-4">
+              {myActiveHand && <CardsRow cards={myActiveHand.cards} size="lg" />}
+            </div>
+            {myActiveHand && (
+              <TotalPill values={safeTotals(myActiveHand.cards)} tight />
+            )}
 
-              {/* Contrôles fixes en bas */}
-              <div className="flex-shrink-0 pb-4">
-                <Controls
-                  disabled={controlsDisabled}
-                  canDouble={canDoubleHand}
-                  canSplit={canSplitHand}
-                  onHit={() => sendAction("hit")}
-                  onStand={() => sendAction("stand")}
-                  onDouble={() => sendAction("double")}
-                  onSplit={() => sendAction("split")}
-                />
-              </div>
+            {/* Contrôles */}
+            <div className="mx-auto w-full">
+              <Controls
+                disabled={controlsDisabled}
+                canDouble={canDoubleHand}
+                canSplit={canSplitHand}
+                onHit={() => sendAction("hit")}
+                onStand={() => sendAction("stand")}
+                onDouble={() => sendAction("double")}
+                onSplit={() => sendAction("split")}
+              />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <Overview 
         show={showOverview} 
