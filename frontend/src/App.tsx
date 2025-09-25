@@ -75,6 +75,7 @@ export default function App() {
   const overviewBtnRef = useRef<HTMLButtonElement>(null);
   const [showRules, setShowRules] = useState(false);
   const [overviewDisabled, setOverviewDisabled] = useState(false);
+  const SAFE_BOTTOM_INSET = "max(1.5rem, env(safe-area-inset-bottom))";
 
   const hardCloseSocket = () => {
     try {
@@ -374,10 +375,13 @@ export default function App() {
                 order={snapshot?.order || (me ? [me.playerId] : [])} 
               />
             </div>
-            <div className="flex-shrink-0 px-4 pb-4 pt-5">
+            <div
+              className="flex-shrink-0 px-4 pt-5"
+              style={{ paddingBottom: SAFE_BOTTOM_INSET }}
+            >
               {isHost ? (
-                <button 
-                  onClick={startRound} 
+                <button
+                  onClick={startRound}
                   className="w-full rounded-[28px] px-4 py-4 text-xl font-extrabold text-white bg-gradient-to-b from-pink-400 to-pink-600 shadow-[0_12px_0_#8b184e] active:shadow-[0_4px_0_#8b184e] active:translate-y-2 transition-all"
                 >
                   Démarrer la manche
@@ -424,7 +428,10 @@ export default function App() {
               </div>
 
               {/* Contrôles fixes en bas avec minimal padding */}
-              <div className="flex-shrink-0 pb-2">
+              <div
+                className="flex-shrink-0 pt-2"
+                style={{ paddingBottom: SAFE_BOTTOM_INSET }}
+              >
                 <Controls
                   disabled={controlsDisabled}
                   canDouble={canDoubleHand}
