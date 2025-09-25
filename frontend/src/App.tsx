@@ -15,7 +15,6 @@ import { ResultModal } from "./components/ResultModal";
 import { FlashOverlay } from "./components/FlashOverlay";
 import { WaitingOverlay } from "./components/WaitingOverlay";
 import { SettingsModal } from "./components/SettingsModal";
-import { RulesModal } from "./components/RulesModal";
 import { getRandomName } from "./utils/names";
 import { safeTotals, isBlackjack, canSplit, canDouble } from "./utils/game";
 import { WS_URL, TIMEOUTS } from "./constants";
@@ -76,7 +75,6 @@ export default function App() {
   const flashPersistRef = useRef(false);
   const autoBJRef = useRef(false);
   const overviewBtnRef = useRef<HTMLButtonElement>(null);
-  const [showRules, setShowRules] = useState(false);
 
   const hardCloseSocket = () => {
     try {
@@ -343,17 +341,17 @@ export default function App() {
   const inLobby = snapshot?.phase === "lobby" || !snapshot;
 
   return (
-    <div className="h-screen h-[100dvh] w-full flex flex-col" style={{ background: "#213743" }}>
+    <div className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col" style={{ background: "#213743" }}>
       {/* Header fixe avec safe area */}
       <div className="flex-shrink-0 pt-safe-top">
         {header}
       </div>
 
       {/* Contenu principal scrollable */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {inLobby && (
-          <div className="w-full max-w-md mx-auto min-h-full flex flex-col">
-            <div className="flex-1">
+          <div className="w-full max-w-md mx-auto h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
               <LobbyList 
                 players={snapshot?.players || []} 
                 order={snapshot?.order || (me ? [me.playerId] : [])} 
@@ -363,7 +361,7 @@ export default function App() {
               {isHost ? (
                 <button 
                   onClick={startRound} 
-                  className="w-full rounded-[28px] px-4 py-4 text-xl font-extrabold text-white bg-gradient-to-b from-pink-400 to-pink-600 shadow-[0_12px_0_#8b184e] active:shadow-[0_4px_0_#8b184e] active:translate-y-2 transition-all cursor-pointer"
+                  className="w-full rounded-[28px] px-4 py-4 text-xl font-extrabold text-white bg-gradient-to-b from-pink-400 to-pink-600 shadow-[0_12px_0_#8b184e] active:shadow-[0_4px_0_#8b184e] active:translate-y-2 transition-all"
                 >
                   Démarrer la manche
                 </button>
@@ -441,17 +439,7 @@ export default function App() {
       {showSettings && (
         <SettingsModal 
           onClose={() => setShowSettings(false)} 
-          onHome={resetToHome}
-          onRules={() => {
-            setShowSettings(false);
-            setShowRules(true);
-          }}
-        />
-      )}
-      
-      {showRules && (
-        <RulesModal 
-          onClose={() => setShowRules(false)} 
+          onHome={resetToHome} 
         />
       )}
     </div>
